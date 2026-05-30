@@ -1,0 +1,42 @@
+import { Router } from "express";
+import { authRoutes } from "./auth";
+import { doctorSettingsRoutes } from "./doctorSettings";
+import { appointmentRoutes } from "./appointments";
+import { paymentRoutes } from "./payments";
+import { planRoutes } from "./plans";
+import { mealRoutes } from "./meals";
+import { metricsRoutes } from "./metrics";
+import { workoutRoutes } from "./workouts";
+import { clientSessionRoutes } from "./clientSessions";
+import { clientRoutes } from "./clients";
+import { dashboardRoutes } from "./dashboard";
+import { profileRoutes } from "./profile";
+import { publicSiteRoutes } from "./publicSite";
+import { instagramAdminRoutes } from "./instagramAdmin";
+import { testimonialAdminRoutes } from "./testimonialAdmin";
+import { messagesAdminRoutes } from "./messagesAdmin";
+import { serviceRoutes } from "./services";
+import { groupSessionRoutes } from "./groupSessions";
+
+const router = Router();
+
+router.use("/auth", authRoutes);
+router.use("/doctor-settings", doctorSettingsRoutes);
+router.use("/appointments", appointmentRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/plans", planRoutes);
+router.use("/meals", mealRoutes);
+router.use("/metrics", metricsRoutes);
+router.use("/workouts", workoutRoutes);
+router.use("/client-sessions", clientSessionRoutes);
+router.use("/clients", clientRoutes);
+router.use("/dashboard", dashboardRoutes);
+router.use("/profile", profileRoutes);
+router.use("/public", publicSiteRoutes);
+router.use("/instagram", instagramAdminRoutes);
+router.use("/testimonials", testimonialAdminRoutes);
+router.use("/messages", messagesAdminRoutes);
+router.use("/admin-services", serviceRoutes);
+router.use("/group-sessions", groupSessionRoutes);
+
+export { router as routes };
