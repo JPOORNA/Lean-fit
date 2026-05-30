@@ -17,7 +17,6 @@ const pageCards = [
   { title: 'Client Results', desc: 'Real transformations, real stories', href: '/results', icon: <EmojiEvents sx={{ fontSize: 28 }} />, color: colors.accent.orange, image: '/smoothie.png' },
   { title: 'About Vishnu', desc: "Vishnu's story, approach and credentials", href: '/about', icon: <Person sx={{ fontSize: 28 }} />, color: colors.accent.purple, image: '/vishnu.webp' },
   { title: 'Get in Touch', desc: 'Book a consult or send a quick question', href: '/contact', icon: <EmailIcon sx={{ fontSize: 28 }} />, color: colors.accent.blue, image: '/contact.webp' },
-  
 ];
 
 
