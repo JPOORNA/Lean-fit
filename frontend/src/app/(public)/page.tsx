@@ -23,7 +23,7 @@ const pageCards = [
 
 const stats = [
   { value: 500, suffix: '+', label: 'Happy Clients' },
-  { value: 15, suffix: 'k+', label: 'Kgs Transformed' },
+  { value: 30, suffix: 'kg+', label: 'Kgs Transformed' },
   { value: 4.9, suffix: '★', label: 'Average Rating' },
   
 ];
