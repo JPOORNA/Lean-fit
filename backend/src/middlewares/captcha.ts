@@ -5,7 +5,6 @@ import { env } from "../config/env";
 export const validateCaptcha = async (req: Request, res: Response, next: NextFunction) => {
   const secret = env.turnstileSecretKey;
   if (!secret) {
-    // If turnstile secret is empty or missing, bypass verification
     return next();
   }
 

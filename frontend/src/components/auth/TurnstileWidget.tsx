@@ -9,13 +9,19 @@ interface TurnstileWidgetProps {
 export default function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const onVerifyRef = useRef(onVerify);
+  const onExpireRef = useRef(onExpire);
+
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+    onExpireRef.current = onExpire;
+  }, [onVerify, onExpire]);
 
   const siteKey = process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY || "0x4AAAAAADZx11Q4MVy6oCBl";
 
   useEffect(() => {
     const renderWidget = () => {
       if (containerRef.current && (window as any).turnstile) {
-        // Clear existing instance if it was previously rendered to avoid duplicate widgets
         if (widgetIdRef.current) {
           try {
             (window as any).turnstile.remove(widgetIdRef.current);
@@ -29,10 +35,10 @@ export default function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetP
           widgetIdRef.current = (window as any).turnstile.render(containerRef.current, {
             sitekey: siteKey,
             callback: (token: string) => {
-              onVerify(token);
+              onVerifyRef.current(token);
             },
             'expired-callback': () => {
-              if (onExpire) onExpire();
+              if (onExpireRef.current) onExpireRef.current();
             }
           });
         } catch (err) {
@@ -44,7 +50,6 @@ export default function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetP
     if ((window as any).turnstile) {
       renderWidget();
     } else {
-      // Fallback polling until script loaded
       const interval = setInterval(() => {
         if ((window as any).turnstile) {
           renderWidget();
@@ -64,7 +69,7 @@ export default function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetP
         widgetIdRef.current = null;
       }
     };
-  }, [siteKey, onVerify, onExpire]);
+  }, [siteKey]);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0', minHeight: '65px' }}>
