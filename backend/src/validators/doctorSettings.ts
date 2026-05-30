@@ -14,9 +14,9 @@ const timeRange = z.object({
 const holidayRange = z.object({
   date: z.string().regex(dateRegex, { message: "Invalid date format, expected YYYY-MM-DD" }),
   isFullDay: z.boolean(),
-  start: z.string().regex(hhmmRegex).optional(),
-  end: z.string().regex(hhmmRegex).optional(),
-  note: z.string().optional()
+  start: z.string().regex(hhmmRegex).optional().nullable(),
+  end: z.string().regex(hhmmRegex).optional().nullable(),
+  note: z.string().optional().nullable()
 }).superRefine((val, ctx) => {
   if (val.isFullDay) return;
   if (!val.start || !val.end) {
@@ -37,11 +37,15 @@ const holidayRange = z.object({
 });
 
 const blockedSlot = z.object({
-  start: z.string().datetime(),
-  end: z.string().datetime(),
-  reason: z.string().optional()
-}).refine((val) => new Date(val.end).getTime() > new Date(val.start).getTime(), {
-  message: "end must be after start",
+  start: z.string(),
+  end: z.string(),
+  reason: z.string().optional().nullable()
+}).refine((val) => {
+  const s = new Date(val.start).getTime();
+  const e = new Date(val.end).getTime();
+  return !isNaN(s) && !isNaN(e) && e > s;
+}, {
+  message: "end must be after start and dates must be valid",
   path: ["end"]
 });
 

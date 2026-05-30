@@ -52,7 +52,16 @@ export default function DoctorSettingsPage() {
     const fetchSettings = async () => {
       try {
         const data = await api.getDoctorSettings();
-        setSettings(data);
+        setSettings(data || {
+          timezone: 'UTC',
+          defaultSlotDurationMinutes: 30,
+          appointmentFeePaise: 0,
+          weeklyAvailability: [],
+          breaks: [],
+          holidays: [],
+          blockedSlots: [],
+          dynamicMetricFields: []
+        });
       } catch (err) {
         console.error('Failed to fetch settings', err);
       } finally {
@@ -67,7 +76,8 @@ export default function DoctorSettingsPage() {
     setSaving(true);
     setSuccess(false);
     try {
-      await api.updateDoctorSettings(settings);
+      const updated = await api.updateDoctorSettings(settings);
+      setSettings(updated);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
