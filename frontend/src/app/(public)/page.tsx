@@ -25,6 +25,7 @@ const stats = [
   { value: 500, suffix: '+', label: 'Happy Clients' },
   { value: 15, suffix: 'k+', label: 'Kgs Transformed' },
   { value: 4.9, suffix: '★', label: 'Average Rating' },
+  
 ];
 
 const ICON_MAP: Record<string, React.ReactNode> = {
