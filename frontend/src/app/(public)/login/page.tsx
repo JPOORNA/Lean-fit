@@ -9,6 +9,7 @@ import { colors, gradientText } from "@/lib/colors";
 import { ArrowForward, Email as EmailIcon, Lock as LockIcon } from "@mui/icons-material";
 import { PublicOnlyGuard } from "@/components/auth/PublicOnlyGuard";
 import PolicyLinks from "@/components/public/PolicyLinks";
+import TurnstileWidget from "@/components/auth/TurnstileWidget";
 
 export default function LoginPage() {
   return (
@@ -22,19 +23,25 @@ function LoginPageContent() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!captchaToken) {
+      setStatus('Please complete the CAPTCHA challenge.');
+      return;
+    }
     setStatus(null);
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const user = await login(email, password, captchaToken);
       router.push(roleRoute(user.role));
     } catch (err: unknown) {
       setStatus(err instanceof Error ? err.message : "Login failed. Check your credentials.");
+      setCaptchaToken(""); // Reset turnstile on failure
     } finally {
       setLoading(false);
     }
@@ -92,6 +99,11 @@ function LoginPageContent() {
                     }
                   }}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(0,0,0,0.02)' } }}
+                />
+
+                <TurnstileWidget 
+                  onVerify={(token) => setCaptchaToken(token)} 
+                  onExpire={() => setCaptchaToken("")} 
                 />
 
                 {status && (

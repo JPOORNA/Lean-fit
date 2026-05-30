@@ -39,7 +39,8 @@ const options: swaggerJsdoc.Options = {
             role: { type: "string" },
             isActive: { type: "boolean" },
             timezone: { type: "string" },
-            clientExpiresAt: { type: "string", format: "date-time", nullable: true }
+            clientExpiresAt: { type: "string", format: "date-time", nullable: true },
+            whatsappNumber: { type: "string", nullable: true }
           }
         },
         AuthResponse: {

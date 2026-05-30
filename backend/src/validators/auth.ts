@@ -7,14 +7,17 @@ export const registerSchema = z.object({
     password: z.string().min(8),
     role: z.enum(["doctor", "client", "user"]),
     bootstrapKey: z.string().optional(),
-    timezone: z.string().optional()
+    timezone: z.string().optional(),
+    whatsappNumber: z.string().min(5, "WhatsApp Number is required"),
+    captchaToken: z.string().optional()
   })
 });
 
 export const loginSchema = z.object({
   body: z.object({
     email: z.string().email(),
-    password: z.string().min(8)
+    password: z.string().min(8),
+    captchaToken: z.string().optional()
   })
 });
 

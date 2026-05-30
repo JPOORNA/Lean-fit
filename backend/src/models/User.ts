@@ -11,6 +11,7 @@ export interface UserDocument extends Document {
   timezone: string;
   clientExpiresAt?: Date;
   refreshTokens: string[];
+  whatsappNumber?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,7 +25,8 @@ const userSchema = new Schema<UserDocument>(
     isActive: { type: Boolean, default: true },
     timezone: { type: String, default: "UTC" },
     clientExpiresAt: { type: Date },
-    refreshTokens: { type: [String], default: [] }
+    refreshTokens: { type: [String], default: [] },
+    whatsappNumber: { type: String, default: "" }
   },
   { timestamps: true }
 );

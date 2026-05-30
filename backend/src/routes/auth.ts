@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { validate } from "../middlewares/validate";
 import { loginSchema, registerSchema, refreshSchema } from "../validators/auth";
 import { requireAuth } from "../middlewares/auth";
+import { validateCaptcha } from "../middlewares/captcha";
 
 const router = Router();
 
@@ -20,12 +21,14 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, email, password, role]
+ *             required: [name, email, password, role, whatsappNumber, captchaToken]
  *             properties:
  *               name: { type: string, example: "Asha" }
  *               email: { type: string, example: "asha@example.com" }
  *               password: { type: string, example: "StrongPass123" }
  *               role: { type: string, enum: [doctor, client, user] }
+ *               whatsappNumber: { type: string, example: "+919876543210" }
+ *               captchaToken: { type: string, example: "0.1A2B3C..." }
  *               bootstrapKey: { type: string, nullable: true }
  *     responses:
  *       201:
@@ -37,7 +40,7 @@ const router = Router();
  *       409:
  *         description: Email or doctor already exists
  */
-router.post("/register", validate(registerSchema), asyncHandler(AuthController.register));
+router.post("/register", validateCaptcha, validate(registerSchema), asyncHandler(AuthController.register));
 
 /**
  * @openapi
@@ -52,10 +55,11 @@ router.post("/register", validate(registerSchema), asyncHandler(AuthController.r
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password]
+ *             required: [email, password, captchaToken]
  *             properties:
  *               email: { type: string, example: "asha@example.com" }
  *               password: { type: string, example: "StrongPass123" }
+ *               captchaToken: { type: string, example: "0.1A2B3C..." }
  *     responses:
  *       200:
  *         description: Successful login
@@ -66,7 +70,7 @@ router.post("/register", validate(registerSchema), asyncHandler(AuthController.r
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", validate(loginSchema), asyncHandler(AuthController.login));
+router.post("/login", validateCaptcha, validate(loginSchema), asyncHandler(AuthController.login));
 
 /**
  * @openapi

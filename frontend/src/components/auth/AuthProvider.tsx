@@ -6,7 +6,7 @@ import { api, Role, User } from "@/lib/api";
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string, captchaToken?: string) => Promise<User>;
   logout: () => Promise<void>;
   refresh: () => Promise<User | null>;
 };
@@ -38,8 +38,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     () => ({
       user,
       loading,
-      login: async (email: string, password: string) => {
-        const { user } = await api.login(email, password);
+      login: async (email: string, password: string, captchaToken?: string) => {
+        const { user } = await api.login(email, password, captchaToken);
         setUser(user);
         return user;
       },

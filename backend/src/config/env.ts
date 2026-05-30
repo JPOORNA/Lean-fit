@@ -30,5 +30,6 @@ export const env = {
   r2AccessKeyId: process.env.R2_ACCESS_KEY_ID ?? "",
   r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? "",
   r2BucketName: process.env.R2_BUCKET_NAME ?? "",
-  r2BaseUrl: process.env.R2_BASE_URL ?? ""
+  r2BaseUrl: process.env.R2_BASE_URL ?? "",
+  turnstileSecretKey: process.env.CF_TURNSTILE_SECRET_KEY ?? "0x4AAAAAADZx1zgNyLMqeKP-Sf4vgWBCtxs"
 };

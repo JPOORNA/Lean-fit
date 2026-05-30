@@ -24,8 +24,8 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken?: strin
 
 export const AuthController = {
   register: async (req: Request, res: Response) => {
-    const { name, email, password, role, bootstrapKey, timezone } = req.body;
-    await AuthService.register({ name, email, password, role, bootstrapKey, timezone });
+    const { name, email, password, role, bootstrapKey, timezone, whatsappNumber } = req.body;
+    await AuthService.register({ name, email, password, role, bootstrapKey, timezone, whatsappNumber });
     res.status(201).json({ message: "Registration successful" });
   },
 
