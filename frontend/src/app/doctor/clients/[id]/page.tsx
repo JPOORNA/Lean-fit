@@ -321,6 +321,9 @@ export default function ClientDetailView() {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     <strong>Subscription Ends:</strong> {client.clientExpiresAt ? new Date(client.clientExpiresAt).toLocaleDateString() : 'N/A'}
                   </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    <strong>WhatsApp:</strong> {client.whatsappNumber || 'N/A'}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     <strong>Timezone:</strong> {client.timezone || 'UTC'}
                   </Typography>

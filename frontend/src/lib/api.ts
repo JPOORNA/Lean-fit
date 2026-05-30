@@ -8,6 +8,7 @@ export type User = {
   isActive: boolean;
   timezone?: string;
   clientExpiresAt?: string | null;
+  whatsappNumber?: string;
 };
 
 export type MealLog = {
@@ -251,12 +252,12 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<T> =
 };
 
 export const api = {
-  login: (email: string, password: string) =>
+  login: (email: string, password: string, captchaToken?: string) =>
     request<{ user: User }>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, captchaToken })
     }),
-  register: (payload: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string }) =>
+  register: (payload: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string; whatsappNumber: string; captchaToken?: string }) =>
     request<{ message: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload)
@@ -463,10 +464,15 @@ export const api = {
     request<{ appointment: Appointment }>(`/appointments/${appointmentId}/payment-status/refresh`, {
       method: "PATCH"
     }),
-  updateProfile: (payload: { name?: string; timezone?: string }) =>
+  updateProfile: (payload: { name?: string; timezone?: string; whatsappNumber?: string }) =>
     request<{ user: User }>("/profile", {
       method: "PATCH",
       body: JSON.stringify(payload)
+    }),
+  changePassword: (password: string) =>
+    request<{ message: string }>("/profile/password", {
+      method: "PUT",
+      body: JSON.stringify({ password })
     }),
   createClientSessionSchedule: (payload: { userId: string; daysOfWeek: number[]; timeSlots: { dayOfWeek: number; startTime: string; endTime: string }[]; startDate: string; endDate?: string }) =>
     request<{ schedule: ClientSessionSchedule }>("/client-sessions", {

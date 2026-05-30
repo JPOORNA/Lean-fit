@@ -12,6 +12,7 @@ import { swaggerSpec } from "./config/swagger";
 
 const app = express();
 
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({
   origin: env.corsOrigin,
@@ -20,7 +21,7 @@ app.use(cors({
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 3000 }));
+app.use(rateLimit({ windowMs: 10 * 60 * 1000, max: 300 }));
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

@@ -12,7 +12,7 @@ const sanitizeUser = (user: UserDocument) => {
 };
 
 export const AuthService = {
-  async register(data: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string }) {
+  async register(data: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string; whatsappNumber?: string }) {
     if (data.role === "doctor") {
       const existingDoctor = await UserRepository.countDoctors();
       if (existingDoctor > 0) {
@@ -36,7 +36,8 @@ export const AuthService = {
       email: data.email,
       passwordHash,
       role: data.role,
-      timezone: data.timezone || "UTC"
+      timezone: data.timezone || "UTC",
+      whatsappNumber: data.whatsappNumber || ""
     } as Partial<UserDocument>);
 
     return sanitizeUser(user);

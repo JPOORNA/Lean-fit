@@ -20,6 +20,7 @@ import {
   Public,
   Security,
   Save,
+  WhatsApp as WhatsAppIcon
 } from '@mui/icons-material';
 import PageContainer from '@/components/layout/PageContainer';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -30,14 +31,18 @@ export default function ProfileContent() {
   
   const [name, setName] = useState(user?.name || '');
   const [timezone, setTimezone] = useState(user?.timezone || 'UTC');
+  const [whatsappNumber, setWhatsappNumber] = useState(user?.whatsappNumber || '');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   if (!user) return null;
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await api.updateProfile({ name, timezone });
+      await api.updateProfile({ name, timezone, whatsappNumber });
       alert('Profile updated successfully!');
       window.location.reload();
     } catch (err) {
@@ -45,6 +50,34 @@ export default function ProfileContent() {
       alert('Failed to update profile');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword) {
+      alert('Password cannot be empty');
+      return;
+    }
+    if (newPassword.length < 8) {
+      alert('Password must be at least 8 characters long');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      await api.changePassword(newPassword);
+      alert('Password updated successfully!');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to update password');
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -77,6 +110,12 @@ export default function ProfileContent() {
                   <Email fontSize="small" color="action" />
                   <Typography variant="body2">{user.email}</Typography>
                 </Box>
+                {user.whatsappNumber && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <WhatsAppIcon fontSize="small" sx={{ color: '#25D366' }} />
+                    <Typography variant="body2">{user.whatsappNumber}</Typography>
+                  </Box>
+                )}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Public fontSize="small" color="action" />
                   <Typography variant="body2">{user.timezone || 'UTC'}</Typography>
@@ -125,6 +164,14 @@ export default function ProfileContent() {
                     <MenuItem value="America/Sao_Paulo">America/Sao_Paulo (BRT/BRST - São Paulo)</MenuItem>
                   </TextField>
                 </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField 
+                    label="WhatsApp Number" 
+                    value={whatsappNumber} 
+                    onChange={(e) => setWhatsappNumber(e.target.value)} 
+                    fullWidth 
+                  />
+                </Grid>
                 <Grid size={{ xs: 12 }}>
                   <Button variant="contained" startIcon={<Save />} onClick={handleSave} disabled={isSaving}>
                     {isSaving ? 'Saving...' : 'Save Changes'}
@@ -138,14 +185,31 @@ export default function ProfileContent() {
               <Divider sx={{ mb: 3 }} />
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField label="New Password" type="password" fullWidth />
+                  <TextField 
+                    label="New Password" 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    fullWidth 
+                  />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField label="Confirm Password" type="password" fullWidth />
+                  <TextField 
+                    label="Confirm Password" 
+                    type="password" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    fullWidth 
+                  />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <Button variant="outlined" color="error">
-                    Update Password
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    onClick={handleUpdatePassword} 
+                    disabled={isUpdatingPassword}
+                  >
+                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
                   </Button>
                 </Grid>
               </Grid>
