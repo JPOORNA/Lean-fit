@@ -116,7 +116,7 @@ export default function LandingPage() {
                       gap: 1.5
                     }}
                   >
-                    Start Your Free Consult
+                    Book Your Consultant Now 
                     <Box sx={{ width: 34, height: 34, borderRadius: '50%', bgcolor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <ArrowForward sx={{ fontSize: 16, color: '#2E7D32' }} />
                     </Box>
