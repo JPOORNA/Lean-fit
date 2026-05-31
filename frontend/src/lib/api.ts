@@ -553,6 +553,28 @@ export const api = {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
       return res.json() as Promise<{ plan: WorkoutPlan }>;
     }),
+  updateDietPlan: (id: string, payload: FormData) =>
+    fetch(`${API_BASE}/plans/diet/${id}`, {
+      method: "PATCH",
+      body: payload,
+      credentials: "include"
+    }).then(async (res) => {
+      if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      return res.json() as Promise<{ plan: DietPlan }>;
+    }),
+  deleteDietPlan: (id: string) =>
+    request<{ message: string }>(`/plans/diet/${id}`, { method: "DELETE" }),
+  updateWorkoutPlan: (id: string, payload: FormData) =>
+    fetch(`${API_BASE}/plans/workout/${id}`, {
+      method: "PATCH",
+      body: payload,
+      credentials: "include"
+    }).then(async (res) => {
+      if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      return res.json() as Promise<{ plan: WorkoutPlan }>;
+    }),
+  deleteWorkoutPlan: (id: string) =>
+    request<{ message: string }>(`/plans/workout/${id}`, { method: "DELETE" }),
   listAllPayments: (params?: { page?: number; limit?: number; search?: string; status?: string; paymentType?: string }) => {
     if (!params) {
       return request<{ 

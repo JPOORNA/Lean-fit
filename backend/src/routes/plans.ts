@@ -132,4 +132,120 @@ router.post(
 	asyncHandler(PlanController.assignWorkoutPlan)
 );
 
+/**
+ * @openapi
+ * /plans/diet/{id}:
+ *   patch:
+ *     tags: [Plans]
+ *     summary: Update a diet plan (doctor)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pdf: { type: string, format: binary }
+ *               name: { type: string, nullable: true }
+ *               description: { type: string, nullable: true }
+ *     responses:
+ *       200:
+ *         description: Plan updated
+ */
+router.patch(
+	"/diet/:id",
+	requireRole("doctor"),
+	upload.single("pdf"),
+	validate(dietPlanUploadSchema),
+	asyncHandler(PlanController.updateDietPlan)
+);
+
+/**
+ * @openapi
+ * /plans/diet/{id}:
+ *   delete:
+ *     tags: [Plans]
+ *     summary: Delete a diet plan (doctor)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Plan deleted
+ */
+router.delete(
+	"/diet/:id",
+	requireRole("doctor"),
+	asyncHandler(PlanController.deleteDietPlan)
+);
+
+/**
+ * @openapi
+ * /plans/workout/{id}:
+ *   patch:
+ *     tags: [Plans]
+ *     summary: Update a workout plan (doctor)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pdf: { type: string, format: binary }
+ *               name: { type: string, nullable: true }
+ *               description: { type: string, nullable: true }
+ *     responses:
+ *       200:
+ *         description: Plan updated
+ */
+router.patch(
+	"/workout/:id",
+	requireRole("doctor"),
+	upload.single("pdf"),
+	validate(workoutPlanUploadSchema),
+	asyncHandler(PlanController.updateWorkoutPlan)
+);
+
+/**
+ * @openapi
+ * /plans/workout/{id}:
+ *   delete:
+ *     tags: [Plans]
+ *     summary: Delete a workout plan (doctor)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Plan deleted
+ */
+router.delete(
+	"/workout/:id",
+	requireRole("doctor"),
+	asyncHandler(PlanController.deleteWorkoutPlan)
+);
+
 export { router as planRoutes };

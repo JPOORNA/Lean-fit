@@ -31,9 +31,6 @@ workoutPlanSchema.index({ doctorId: 1 });
 
 workoutPlanSchema.index({ assignedTo: 1 });
 
-workoutPlanSchema.index(
-  { assignedTo: 1, isActive: 1 },
-  { unique: true, partialFilterExpression: { isActive: true } }
-);
+// Unique index removed to allow multiple active workout plans
 
 export const WorkoutPlan = mongoose.model<WorkoutPlanDocument>("WorkoutPlan", workoutPlanSchema);
