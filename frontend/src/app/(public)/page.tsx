@@ -161,6 +161,7 @@ export default function LandingPage() {
                       sizes="(max-width: 900px) 100vw, 50vw"
                     />
                   </Box>
+                  
 
                   {/* Floating small images */}
                   <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} style={{ position: 'absolute', top: -20, right: -16, zIndex: 2 }}>
