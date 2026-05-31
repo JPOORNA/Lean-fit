@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Service } from "../models/Service";
 import { uploadToR2 } from "../utils/r2Upload";
 import { AppError } from "../utils/errors";
+import { serverCache } from "../utils/cache";
 
 export const ServiceController = {
   listAll: async (_req: Request, res: Response) => {
@@ -33,6 +34,7 @@ export const ServiceController = {
       isActive: isActive === "true" || isActive === true
     });
 
+    serverCache.delete("public_services");
     res.status(201).json({ service });
   },
 
@@ -56,6 +58,7 @@ export const ServiceController = {
       throw new AppError("Service not found", 404, "NOT_FOUND");
     }
 
+    serverCache.delete("public_services");
     res.json({ service });
   },
 
@@ -65,6 +68,7 @@ export const ServiceController = {
     if (!service) {
       throw new AppError("Service not found", 404, "NOT_FOUND");
     }
+    serverCache.delete("public_services");
     res.json({ message: "Service deleted successfully" });
   }
 };

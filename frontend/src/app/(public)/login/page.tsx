@@ -24,6 +24,7 @@ function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
+  const [resetTrigger, setResetTrigger] = useState(0);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -42,6 +43,7 @@ function LoginPageContent() {
     } catch (err: unknown) {
       setStatus(err instanceof Error ? err.message : "Login failed. Check your credentials.");
       setCaptchaToken(""); // Reset turnstile on failure
+      setResetTrigger((prev) => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -104,6 +106,7 @@ function LoginPageContent() {
                 <TurnstileWidget 
                   onVerify={(token) => setCaptchaToken(token)} 
                   onExpire={() => setCaptchaToken("")} 
+                  resetTrigger={resetTrigger}
                 />
 
                 {status && (

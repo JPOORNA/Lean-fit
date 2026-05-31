@@ -151,6 +151,7 @@ export default function ServicesPage() {
                           fill 
                           style={{ objectFit: 'cover', transition: 'transform 0.6s ease' }} 
                           sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
+                          unoptimized
                         />
                         <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)' }} />
                         

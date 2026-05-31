@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { InstagramPost } from "../models/InstagramPost";
 import { uploadToR2, deleteFromR2 } from "../utils/r2Upload";
 import { AppError } from "../utils/errors";
+import { serverCache } from "../utils/cache";
 
 export const InstagramController = {
   list: async (_req: Request, res: Response) => {
@@ -32,6 +33,7 @@ export const InstagramController = {
       isActive: req.body.isActive !== "false",
     });
 
+    serverCache.delete("public_instagram");
     res.status(201).json({ post });
   },
 
@@ -53,6 +55,7 @@ export const InstagramController = {
     if (req.body.isActive !== undefined) post.isActive = req.body.isActive === "true" || req.body.isActive === true;
 
     await post.save();
+    serverCache.delete("public_instagram");
     res.json({ post });
   },
 
@@ -62,7 +65,7 @@ export const InstagramController = {
 
     if (post.thumbnailUrl) await deleteFromR2(post.thumbnailUrl);
     await post.deleteOne();
-
+    serverCache.delete("public_instagram");
     res.json({ message: "Deleted" });
   },
 };

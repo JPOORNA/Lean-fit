@@ -237,6 +237,7 @@ function RegisterPageContent() {
   });
   const [acceptedPolicies, setAcceptedPolicies] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
+  const [resetTrigger, setResetTrigger] = useState(0);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -271,7 +272,8 @@ function RegisterPageContent() {
       router.push("/login");
     } catch (err: unknown) {
       setStatus(err instanceof Error ? err.message : "Registration failed. Verify the details and try again.");
-      setCaptchaToken(""); // Reset captcha on failure to force re-verification
+      setCaptchaToken("");
+      setResetTrigger((prev) => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -414,6 +416,7 @@ function RegisterPageContent() {
                 <TurnstileWidget 
                   onVerify={(token) => setCaptchaToken(token)} 
                   onExpire={() => setCaptchaToken("")} 
+                  resetTrigger={resetTrigger}
                 />
 
                 {status && (

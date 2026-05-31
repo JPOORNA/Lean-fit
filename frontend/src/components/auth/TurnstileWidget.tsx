@@ -4,9 +4,10 @@ import Script from 'next/script';
 interface TurnstileWidgetProps {
   onVerify: (token: string) => void;
   onExpire?: () => void;
+  resetTrigger?: number;
 }
 
-export default function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetProps) {
+export default function TurnstileWidget({ onVerify, onExpire, resetTrigger }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onVerifyRef = useRef(onVerify);
@@ -70,6 +71,16 @@ export default function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetP
       }
     };
   }, [siteKey]);
+
+  useEffect(() => {
+    if (resetTrigger && resetTrigger > 0 && widgetIdRef.current && (window as any).turnstile) {
+      try {
+        (window as any).turnstile.reset(widgetIdRef.current);
+      } catch (err) {
+        console.error("Error resetting Turnstile:", err);
+      }
+    }
+  }, [resetTrigger]);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0', minHeight: '65px' }}>

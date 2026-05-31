@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -27,6 +27,11 @@ import {
   DialogContentText,
   DialogActions,
   Alert,
+  TablePagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Search,
@@ -45,20 +50,56 @@ export default function DoctorPaymentsPage() {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [refundConfirmOpen, setRefundConfirmOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(null);
   const [refunding, setRefunding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const [stats, setStats] = useState({
+    todayGross: 0,
+    weeklyGross: 0,
+    monthlyGross: 0,
+    overallGross: 0,
+    totalOrders: 0,
+    totalRefunds: 0,
+    totalRefundedAmount: 0,
+    netProfit: 0
+  });
+
   useEffect(() => {
-    fetchPayments();
-  }, []);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, typeFilter]);
 
   const fetchPayments = async () => {
     setLoading(true);
     try {
-      const data = await api.listAllPayments();
+      const data = await api.listAllPayments({
+        page: page + 1,
+        limit: rowsPerPage,
+        search: debouncedSearch || undefined,
+        status: statusFilter || undefined,
+        paymentType: typeFilter || undefined
+      });
       setPayments(data.payments);
+      setTotal(data.pagination?.total ?? 0);
+      if (data.stats) {
+        setStats(data.stats);
+      }
     } catch (err) {
       console.error('Failed to fetch payments', err);
     } finally {
@@ -66,13 +107,9 @@ export default function DoctorPaymentsPage() {
     }
   };
 
-  const filteredPayments = useMemo(() => {
-    return payments.filter((p) => {
-      const user = typeof p.userId === 'object' ? p.userId : null;
-      const searchStr = `${user?.name || ''} ${user?.email || ''} ${p.orderId} ${p.paymentId || ''}`.toLowerCase();
-      return searchStr.includes(search.toLowerCase());
-    });
-  }, [payments, search]);
+  useEffect(() => {
+    fetchPayments();
+  }, [page, rowsPerPage, debouncedSearch, statusFilter, typeFilter]);
 
   const handleOpenRefundConfirm = (payment: PaymentRecord) => {
     setSelectedPayment(payment);
@@ -104,50 +141,6 @@ export default function DoctorPaymentsPage() {
       default: return 'default';
     }
   };
-
-  const stats = useMemo(() => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    const weeklyTime = startOfWeek.getTime();
-    
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-
-    return payments.reduce((acc, p) => {
-      const pTime = new Date(p.createdAt).getTime();
-      const amount = p.amount / 100;
-
-      // Successful transactions (Paid or Refunded)
-      if (p.status === 'paid' || p.status === 'refunded') {
-        acc.totalOrders += 1;
-        acc.overallGross += amount;
-        
-        if (pTime >= today) acc.todayGross += amount;
-        if (pTime >= weeklyTime) acc.weeklyGross += amount;
-        if (pTime >= startOfMonth) acc.monthlyGross += amount;
-
-        if (p.status === 'paid') {
-          acc.netProfit += amount;
-        } else if (p.status === 'refunded') {
-          acc.totalRefunds += 1;
-          acc.totalRefundedAmount += amount;
-        }
-      }
-      return acc;
-    }, {
-      todayGross: 0,
-      weeklyGross: 0,
-      monthlyGross: 0,
-      overallGross: 0,
-      totalOrders: 0,
-      totalRefunds: 0,
-      totalRefundedAmount: 0,
-      netProfit: 0
-    });
-  }, [payments]);
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('en-IN', {
@@ -264,13 +257,13 @@ export default function DoctorPaymentsPage() {
           </Grid>
         </Grid>
 
-        <Paper sx={{ mb: 3, p: 2, display: 'flex', gap: 2, alignItems: 'center', boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+        <Paper sx={{ mb: 3, p: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           <TextField
             placeholder="Search by client name, email, or ID..."
             size="small"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            fullWidth
+            sx={{ flexGrow: 1, minWidth: '250px' }}
             slotProps={{
               input: {
                 startAdornment: (
@@ -281,6 +274,45 @@ export default function DoctorPaymentsPage() {
               }
             }}
           />
+          <FormControl size="small" sx={{ minWidth: '150px' }}>
+            <InputLabel id="status-filter-label">Status</InputLabel>
+            <Select
+              labelId="status-filter-label"
+              value={statusFilter}
+              label="Status"
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <MenuItem value="">All Statuses</MenuItem>
+              <MenuItem value="paid">Paid</MenuItem>
+              <MenuItem value="refunded">Refunded</MenuItem>
+              <MenuItem value="failed">Failed</MenuItem>
+              <MenuItem value="created">Created</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: '150px' }}>
+            <InputLabel id="type-filter-label">Type</InputLabel>
+            <Select
+              labelId="type-filter-label"
+              value={typeFilter}
+              label="Type"
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <MenuItem value="">All Types</MenuItem>
+              <MenuItem value="appointment">Appointment</MenuItem>
+              <MenuItem value="group_session">Group Session</MenuItem>
+            </Select>
+          </FormControl>
+          <Button 
+            variant="outlined" 
+            size="small"
+            onClick={() => {
+              setSearch('');
+              setStatusFilter('');
+              setTypeFilter('');
+            }}
+          >
+            Reset
+          </Button>
           <IconButton onClick={fetchPayments} disabled={loading}>
             <History fontSize="small" />
           </IconButton>
@@ -306,7 +338,7 @@ export default function DoctorPaymentsPage() {
                     <CircularProgress size={40} />
                   </TableCell>
                 </TableRow>
-              ) : filteredPayments.map((p) => {
+              ) : payments.map((p) => {
                 const appt = typeof p.appointmentId === 'object' ? p.appointmentId : null;
                 const { date: apptDate, time: apptTime } = appt ? formatAppointmentTime(appt.startTime, user?.timezone) : { date: 'N/A', time: '' };
                 
@@ -393,7 +425,7 @@ export default function DoctorPaymentsPage() {
                   </TableRow>
                 );
               })}
-              {!loading && filteredPayments.length === 0 && (
+              {!loading && payments.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} align="center" sx={{ py: 10 }}>
                     <Typography color="text.secondary">No transactions found matching your search.</Typography>
@@ -403,6 +435,20 @@ export default function DoctorPaymentsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={total}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
+          sx={{ borderTop: '1px solid', borderColor: 'divider' }}
+        />
       </PageContainer>
 
       {/* Refund Confirmation Dialog */}

@@ -341,6 +341,16 @@ export const PaymentService = {
     return await PaymentRepository.findAll();
   },
 
+  async listPaymentsPaginated(filters: {
+    page: number;
+    limit: number;
+    search?: string;
+    status?: string;
+    paymentType?: string;
+  }) {
+    return await PaymentRepository.findPaginated(filters);
+  },
+
   async initiateRefund(paymentRecordId: string) {
     const payment = await PaymentRepository.findById(paymentRecordId);
     if (!payment) throw new AppError("Payment record not found", 404, "NOT_FOUND");
