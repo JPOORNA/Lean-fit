@@ -169,7 +169,14 @@ export default function AboutPage() {
                 <Typography
                   variant="body1"
                   sx={{ color: '#6B8F71', lineHeight: 1.8, mb: 3 }}
+
                 >
+                   ISSA CPR/AED Certified 
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{ color: '#6B8F71', lineHeight: 1.8, mb: 3 }}
+                  >
                   Hello, I'm Vishnu. As an ISSA Certified Nutritionist with a passion for fitness and body transformation, I help individuals achieve their goals through science-backed nutrition and structured training.
                 </Typography>
                 <Typography
