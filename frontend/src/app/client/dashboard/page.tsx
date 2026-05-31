@@ -23,7 +23,7 @@ import {
   Download,
 } from '@mui/icons-material';
 import PageContainer from '@/components/layout/PageContainer';
-import { api, User, DietPlan } from '@/lib/api';
+import { api, User, DietPlan, WorkoutPlan } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { getDateKeyInTimeZone } from '@/lib/dateUtils';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -37,7 +37,8 @@ export default function ClientDashboard() {
     bodyDataThisWeek: false,
     upcomingAppointments: 0,
   });
-  const [latestPlan, setLatestPlan] = useState<DietPlan | null>(null);
+  const [dietPlans, setDietPlans] = useState<DietPlan[]>([]);
+  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,10 +51,10 @@ export default function ClientDashboard() {
           bodyDataThisWeek: statsData.bodyDataThisWeek,
           upcomingAppointments: statsData.upcomingAppointments,
         });
+        const workoutPlansData = await api.listMyWorkoutPlans();
         
-        if (plans.plans.length > 0) {
-          setLatestPlan(plans.plans[0]);
-        }
+        setDietPlans(plans.plans);
+        setWorkoutPlans(workoutPlansData.plans);
       } catch (err) {
         console.error('Failed to fetch dashboard data', err);
       } finally {
@@ -154,28 +155,35 @@ export default function ClientDashboard() {
 
           {/* Diet Plan Card */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper sx={{ p: 0, overflow: 'hidden', boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+            <Paper sx={{ p: 0, overflow: 'hidden', boxShadow: 'none', border: '1px solid', borderColor: 'divider', height: '100%' }}>
+              <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'primary.contrastText', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600 }}>
-                  <PictureAsPdf /> Current Diet Plan
+                  <PictureAsPdf /> Assigned Diet Plans
                 </Typography>
+                <Button size="small" color="inherit" onClick={() => router.push('/client/diet-plan')}>View Details</Button>
               </Box>
               <Box sx={{ p: 3 }}>
-                {latestPlan ? (
-                  <Box>
-                    <Typography variant="h6" gutterBottom>{latestPlan.name || 'Personalized Nutrition Plan'}</Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {latestPlan.description || 'Your custom diet plan assigned by your doctor.'}
-                    </Typography>
-                    <Divider sx={{ my: 2 }} />
-                    <Button 
-                      variant="contained" 
-                      startIcon={<Download />}
-                      href={latestPlan.fileUrl}
-                      target="_blank"
-                    >
-                      Download PDF
-                    </Button>
+                {dietPlans.length > 0 ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {dietPlans.map((plan, index) => (
+                      <Box key={plan._id}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{plan.name || `Personalized Nutrition Plan ${index + 1}`}</Typography>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          {plan.description || 'Your custom diet plan assigned by your doctor.'}
+                        </Typography>
+                        <Button 
+                          size="small"
+                          variant="outlined" 
+                          startIcon={<Download />}
+                          href={plan.fileUrl}
+                          target="_blank"
+                          sx={{ mt: 1 }}
+                        >
+                          Download PDF
+                        </Button>
+                        {index < dietPlans.length - 1 && <Divider sx={{ mt: 2 }} />}
+                      </Box>
+                    ))}
                   </Box>
                 ) : (
                   <Box sx={{ py: 2, textAlign: 'center' }}>
@@ -186,8 +194,49 @@ export default function ClientDashboard() {
             </Paper>
           </Grid>
 
-          {/* Quick Actions */}
+          {/* Workout Plan Card */}
           <Grid size={{ xs: 12, md: 6 }}>
+            <Paper sx={{ p: 0, overflow: 'hidden', boxShadow: 'none', border: '1px solid', borderColor: 'divider', height: '100%' }}>
+              <Box sx={{ p: 2, bgcolor: 'secondary.main', color: 'secondary.contrastText', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600 }}>
+                  <PictureAsPdf /> Assigned Workout Plans
+                </Typography>
+                <Button size="small" color="inherit" onClick={() => router.push('/client/workout-plan')}>View Details</Button>
+              </Box>
+              <Box sx={{ p: 3 }}>
+                {workoutPlans.length > 0 ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {workoutPlans.map((plan, index) => (
+                      <Box key={plan._id}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{plan.name || `Personalized Workout Plan ${index + 1}`}</Typography>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          {plan.description || 'Your custom workout plan assigned by your doctor.'}
+                        </Typography>
+                        <Button 
+                          size="small"
+                          variant="outlined" 
+                          startIcon={<Download />}
+                          href={plan.fileUrl}
+                          target="_blank"
+                          sx={{ mt: 1 }}
+                        >
+                          Download PDF
+                        </Button>
+                        {index < workoutPlans.length - 1 && <Divider sx={{ mt: 2 }} />}
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Box sx={{ py: 2, textAlign: 'center' }}>
+                    <Typography color="text.secondary">No workout plan assigned yet.</Typography>
+                  </Box>
+                )}
+              </Box>
+            </Paper>
+          </Grid>
+
+          {/* Quick Actions */}
+          <Grid size={{ xs: 12, md: 12 }}>
             <Paper sx={{ p: 2, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>Quick Actions</Typography>
               <Grid container spacing={2} sx={{ mt: 1 }}>

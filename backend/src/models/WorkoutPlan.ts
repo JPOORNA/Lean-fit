@@ -31,6 +31,5 @@ workoutPlanSchema.index({ doctorId: 1 });
 
 workoutPlanSchema.index({ assignedTo: 1 });
 
-// Unique index removed to allow multiple active workout plans
 
 export const WorkoutPlan = mongoose.model<WorkoutPlanDocument>("WorkoutPlan", workoutPlanSchema);
