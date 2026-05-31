@@ -7,6 +7,8 @@ import {
   Typography,
   Button,
   Divider,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   PictureAsPdf,
@@ -18,6 +20,7 @@ import { api, WorkoutPlan } from '@/lib/api';
 export default function WorkoutPlanPage() {
   const [plans, setPlans] = useState<WorkoutPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -33,37 +36,57 @@ export default function WorkoutPlanPage() {
     fetchPlans();
   }, []);
 
-  const latestPlan = plans[0];
+  const activePlan = plans[activeTab];
 
   return (
     <Box>
       <PageContainer>
-        {latestPlan ? (
-          <Paper sx={{ height: 'calc(100vh - 250px)', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PictureAsPdf color="primary" /> {latestPlan.name || 'Personalized Workout Plan'}
-              </Typography>
-              <Button 
-                variant="outlined" 
-                startIcon={<Download />} 
-                href={latestPlan.fileUrl} 
-                target="_blank"
-              >
-                Download PDF
-              </Button>
-            </Box>
-            <Divider />
-            <Box sx={{ flexGrow: 1, p: 2 }}>
-              <iframe 
-                src={`${latestPlan.fileUrl}#toolbar=0`} 
-                width="100%" 
-                height="100%" 
-                style={{ border: 'none', borderRadius: 8 }}
-                title="Workout Plan PDF"
-              />
-            </Box>
-          </Paper>
+        {plans.length > 0 ? (
+          <>
+            <Tabs 
+              value={activeTab} 
+              onChange={(_, newValue) => setActiveTab(newValue)} 
+              sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+            >
+              {plans.map((plan, index) => (
+                <Tab key={plan._id} label={plan.name || `Plan ${index + 1}`} />
+              ))}
+            </Tabs>
+            {activePlan && (
+              <Paper sx={{ height: 'calc(100vh - 300px)', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PictureAsPdf color="primary" /> {activePlan.name || 'Personalized Workout Plan'}
+                  </Typography>
+                  <Button 
+                    variant="outlined" 
+                    startIcon={<Download />} 
+                    href={activePlan.fileUrl} 
+                    target="_blank"
+                  >
+                    Download PDF
+                  </Button>
+                </Box>
+                {activePlan.description && (
+                  <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {activePlan.description}
+                    </Typography>
+                  </Box>
+                )}
+                <Divider />
+                <Box sx={{ flexGrow: 1, p: 2 }}>
+                  <iframe 
+                    src={`${activePlan.fileUrl}#toolbar=0`} 
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: 'none', borderRadius: 8 }}
+                    title="Workout Plan PDF"
+                  />
+                </Box>
+              </Paper>
+            )}
+          </>
         ) : (
           <Paper sx={{ py: 10, textAlign: 'center' }}>
             <PictureAsPdf sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
