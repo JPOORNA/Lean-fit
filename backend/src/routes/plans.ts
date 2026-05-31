@@ -8,7 +8,7 @@ import { validate } from "../middlewares/validate";
 import { dietPlanUploadSchema, workoutPlanUploadSchema } from "../validators/plan";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 router.use(requireAuth);
 

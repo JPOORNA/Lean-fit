@@ -8,7 +8,7 @@ import { validate } from "../middlewares/validate";
 import { mealSchema, mealStatusSchema } from "../validators/meal";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 router.use(requireAuth, requireRole("client"));
 

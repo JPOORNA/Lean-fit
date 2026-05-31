@@ -444,6 +444,7 @@ export default function ClientDetailView() {
                                    fill 
                                    style={{ objectFit: 'cover' }} 
                                    sizes="(max-width: 900px) 100vw, 33vw"
+                                   unoptimized
                                  />
                                </Box>
                             ) : (

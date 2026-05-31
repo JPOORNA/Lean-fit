@@ -4,27 +4,51 @@ import { Testimonial } from "../models/Testimonial";
 import { Service } from "../models/Service";
 import { ContactMessage } from "../models/ContactMessage";
 import { AppError } from "../utils/errors";
+import { serverCache } from "../utils/cache";
+
+const CACHE_TTL = 6 * 60 * 60 * 1000;
 
 export const PublicSiteController = {
   listInstagramPosts: async (_req: Request, res: Response) => {
+    const cacheKey = "public_instagram";
+    const cached = serverCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
     const posts = await InstagramPost.find({ isActive: true })
       .sort({ order: 1, createdAt: -1 })
       .lean();
-    res.json({ posts });
+    const data = { posts };
+    serverCache.set(cacheKey, data, CACHE_TTL);
+    res.json(data);
   },
 
   listTestimonials: async (_req: Request, res: Response) => {
+    const cacheKey = "public_testimonials";
+    const cached = serverCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
     const testimonials = await Testimonial.find({ isActive: true })
       .sort({ order: 1, createdAt: -1 })
       .lean();
-    res.json({ testimonials });
+    const data = { testimonials };
+    serverCache.set(cacheKey, data, CACHE_TTL);
+    res.json(data);
   },
 
   listServices: async (_req: Request, res: Response) => {
+    const cacheKey = "public_services";
+    const cached = serverCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
     const services = await Service.find({ isActive: true })
       .sort({ order: 1, createdAt: -1 })
       .lean();
-    res.json({ services });
+    const data = { services };
+    serverCache.set(cacheKey, data, CACHE_TTL);
+    res.json(data);
   },
 
   submitContact: async (req: Request, res: Response) => {

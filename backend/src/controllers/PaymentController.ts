@@ -30,8 +30,20 @@ export const PaymentController = {
   },
 
   listAll: async (req: Request, res: Response) => {
-    const payments = await PaymentService.listAllPayments();
-    res.json({ payments });
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+    const search = req.query.search as string;
+    const status = req.query.status as string;
+    const paymentType = req.query.paymentType as string;
+
+    const result = await PaymentService.listPaymentsPaginated({
+      page,
+      limit,
+      search,
+      status,
+      paymentType
+    });
+    res.json(result);
   },
 
   refund: async (req: Request, res: Response) => {

@@ -18,10 +18,15 @@ app.use(cors({
   origin: env.corsOrigin,
   credentials: true
 }));
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
-app.use(rateLimit({ windowMs: 10 * 60 * 1000, max: 300 }));
+app.use(rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: env.nodeEnv === "production" ? 1000 : 10000,
+  message: { message: "Too many requests, please try again later." }
+}));
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

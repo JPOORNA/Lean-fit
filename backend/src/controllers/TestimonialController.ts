@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Testimonial } from "../models/Testimonial";
 import { uploadToR2, deleteFromR2 } from "../utils/r2Upload";
 import { AppError } from "../utils/errors";
+import { serverCache } from "../utils/cache";
 
 export const TestimonialController = {
   list: async (_req: Request, res: Response) => {
@@ -36,6 +37,7 @@ export const TestimonialController = {
       order: req.body.order ?? count,
     });
 
+    serverCache.delete("public_testimonials");
     res.status(201).json({ testimonial });
   },
 
@@ -67,6 +69,7 @@ export const TestimonialController = {
     if (req.body.isActive !== undefined) testimonial.isActive = req.body.isActive === "true" || req.body.isActive === true;
 
     await testimonial.save();
+    serverCache.delete("public_testimonials");
     res.json({ testimonial });
   },
 
@@ -77,7 +80,7 @@ export const TestimonialController = {
     if (testimonial.beforeImageUrl) await deleteFromR2(testimonial.beforeImageUrl);
     if (testimonial.afterImageUrl) await deleteFromR2(testimonial.afterImageUrl);
     await testimonial.deleteOne();
-
+    serverCache.delete("public_testimonials");
     res.json({ message: "Deleted" });
   },
 };

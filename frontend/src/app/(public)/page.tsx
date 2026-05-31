@@ -356,6 +356,7 @@ export default function LandingPage() {
                               fill 
                               style={{ objectFit: 'cover', transition: 'transform 0.6s ease' }} 
                               sizes="(max-width: 600px) 100px, 120px"
+                              unoptimized
                             />
                             {/* Overlay with icon */}
                             <Box sx={{ 
@@ -440,12 +441,12 @@ export default function LandingPage() {
                             <Box sx={{ display: 'flex', height: 180, position: 'relative' }}>
                               {t.beforeImageUrl && (
                                 <Box sx={{ flex: 1, position: 'relative', '&::after': { content: '"Before"', position: 'absolute', bottom: 8, left: 8, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '0.65rem', fontWeight: 700, px: 1, py: 0.3, borderRadius: '6px', zIndex: 1 } }}>
-                                  <Image src={t.beforeImageUrl} alt="Before" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" />
+                                  <Image src={t.beforeImageUrl} alt="Before" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" unoptimized />
                                 </Box>
                               )}
                               {t.afterImageUrl && (
                                 <Box sx={{ flex: 1, position: 'relative', '&::after': { content: '"After"', position: 'absolute', bottom: 8, right: 8, bgcolor: `${colors.primary}d9`, color: '#fff', fontSize: '0.65rem', fontWeight: 700, px: 1, py: 0.3, borderRadius: '6px', zIndex: 1 } }}>
-                                  <Image src={t.afterImageUrl} alt="After" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" />
+                                  <Image src={t.afterImageUrl} alt="After" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" unoptimized />
                                 </Box>
                               )}
                             </Box>
@@ -499,7 +500,7 @@ export default function LandingPage() {
                     <Grid key={post._id} size={{ xs: 6, sm: 4, md: 2 }}>
                       <StaggerItem>
                         <Box component="a" href={post.postUrl} target="_blank" rel="noopener" sx={{ display: 'block', position: 'relative', borderRadius: '14px', overflow: 'hidden', aspectRatio: '1', '&:hover .ig-overlay': { opacity: 1 }, '&:hover img': { transform: 'scale(1.06)' } }}>
-                          <Image src={post.thumbnailUrl} alt={post.caption} fill style={{ objectFit: 'cover', transition: 'transform 0.5s ease' }} sizes="(max-width: 600px) 50vw, (max-width: 900px) 33vw, 16vw" />
+                          <Image src={post.thumbnailUrl} alt={post.caption} fill style={{ objectFit: 'cover', transition: 'transform 0.5s ease' }} sizes="(max-width: 600px) 50vw, (max-width: 900px) 33vw, 16vw" unoptimized />
                           <Box className="ig-overlay" sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.3s ease' }}>
                             <Instagram sx={{ color: '#fff', fontSize: 28 }} />
                           </Box>

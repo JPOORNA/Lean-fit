@@ -221,6 +221,54 @@ export type Service = {
   createdAt: string;
 };
 
+const CACHE_DURATION_MS = 1 * 60 * 60 * 1000;
+const memoryCache: Record<string, { data: any; expiry: number }> = {};
+
+const getCache = <T>(key: string): T | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = sessionStorage.getItem(key);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && typeof parsed === "object" && "expiry" in parsed && "data" in parsed) {
+        if (Date.now() < parsed.expiry) {
+          return parsed.data as T;
+        } else {
+          sessionStorage.removeItem(key);
+        }
+      }
+    }
+  } catch (e) {}
+
+  const memEntry = memoryCache[key];
+  if (memEntry) {
+    if (Date.now() < memEntry.expiry) {
+      return memEntry.data as T;
+    } else {
+      delete memoryCache[key];
+    }
+  }
+  return null;
+};
+
+const setCache = <T>(key: string, data: T): void => {
+  if (typeof window === "undefined") return;
+  const expiry = Date.now() + CACHE_DURATION_MS;
+  const entry = { data, expiry };
+  try {
+    sessionStorage.setItem(key, JSON.stringify(entry));
+  } catch (e) {}
+  memoryCache[key] = entry;
+};
+
+const clearCache = (key: string): void => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(key);
+  } catch (e) {}
+  delete memoryCache[key];
+};
+
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
 
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
@@ -505,10 +553,47 @@ export const api = {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
       return res.json() as Promise<{ plan: WorkoutPlan }>;
     }),
-  listAllPayments: () => request<{ payments: PaymentRecord[] }>("/payments"),
+  listAllPayments: (params?: { page?: number; limit?: number; search?: string; status?: string; paymentType?: string }) => {
+    if (!params) {
+      return request<{ 
+        payments: PaymentRecord[]; 
+        pagination?: { total: number; page: number; limit: number; totalPages: number };
+        stats?: {
+          todayGross: number;
+          weeklyGross: number;
+          monthlyGross: number;
+          overallGross: number;
+          totalOrders: number;
+          totalRefunds: number;
+          totalRefundedAmount: number;
+          netProfit: number;
+        };
+      }>("/payments");
+    }
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== "") {
+        query.append(key, String(val));
+      }
+    });
+    const queryString = query.toString();
+    return request<{ 
+      payments: PaymentRecord[]; 
+      pagination?: { total: number; page: number; limit: number; totalPages: number };
+      stats?: {
+        todayGross: number;
+        weeklyGross: number;
+        monthlyGross: number;
+        overallGross: number;
+        totalOrders: number;
+        totalRefunds: number;
+        totalRefundedAmount: number;
+        netProfit: number;
+      };
+    }>(queryString ? `/payments?${queryString}` : "/payments");
+  },
   refundPayment: (paymentId: string) => request<{ payment: PaymentRecord }>(`/payments/${paymentId}/refund`, { method: "POST" }),
 
-  // ── Service Admin APIs (doctor auth) ──
   listServicesAdmin: () => request<{ services: Service[] }>("/admin-services"),
   createService: (payload: FormData) =>
     fetch(`${API_BASE}/admin-services`, {
@@ -517,6 +602,7 @@ export const api = {
       credentials: "include"
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      clearCache("lf_services");
       return res.json() as Promise<{ service: Service }>;
     }),
   updateService: (id: string, payload: FormData) =>
@@ -526,22 +612,45 @@ export const api = {
       credentials: "include"
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      clearCache("lf_services");
       return res.json() as Promise<{ service: Service }>;
     }),
   deleteService: (id: string) =>
-    request<{ message: string }>(`/admin-services/${id}`, { method: "DELETE" }),
+    request<{ message: string }>(`/admin-services/${id}`, { method: "DELETE" }).then((res) => {
+      clearCache("lf_services");
+      return res;
+    }),
 
-  // ── Public Site APIs (no auth) ──
-  fetchInstagramPosts: () => request<{ posts: InstagramPost[] }>("/public/instagram"),
-  fetchTestimonials: () => request<{ testimonials: Testimonial[] }>("/public/testimonials"),
-  fetchServices: () => request<{ services: Service[] }>("/public/services"),
+  fetchInstagramPosts: async () => {
+    const key = "lf_instagram_posts";
+    const cached = getCache<{ posts: InstagramPost[] }>(key);
+    if (cached) return cached;
+    const res = await request<{ posts: InstagramPost[] }>("/public/instagram");
+    setCache(key, res);
+    return res;
+  },
+  fetchTestimonials: async () => {
+    const key = "lf_testimonials";
+    const cached = getCache<{ testimonials: Testimonial[] }>(key);
+    if (cached) return cached;
+    const res = await request<{ testimonials: Testimonial[] }>("/public/testimonials");
+    setCache(key, res);
+    return res;
+  },
+  fetchServices: async () => {
+    const key = "lf_services";
+    const cached = getCache<{ services: Service[] }>(key);
+    if (cached) return cached;
+    const res = await request<{ services: Service[] }>("/public/services");
+    setCache(key, res);
+    return res;
+  },
   submitContact: (payload: { name: string; email: string; phone?: string; subject: string; message: string }) =>
     request<{ message: string }>("/public/contact", {
       method: "POST",
       body: JSON.stringify(payload)
     }),
 
-  // ── Instagram Admin APIs (doctor auth) ──
   listInstagramAdmin: () => request<{ posts: InstagramPost[] }>("/instagram"),
   createInstagramPost: (payload: FormData) =>
     fetch(`${API_BASE}/instagram`, {
@@ -550,6 +659,7 @@ export const api = {
       credentials: "include"
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      clearCache("lf_instagram_posts");
       return res.json() as Promise<{ post: InstagramPost }>;
     }),
   updateInstagramPost: (id: string, payload: FormData) =>
@@ -559,12 +669,15 @@ export const api = {
       credentials: "include"
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      clearCache("lf_instagram_posts");
       return res.json() as Promise<{ post: InstagramPost }>;
     }),
   deleteInstagramPost: (id: string) =>
-    request<{ message: string }>(`/instagram/${id}`, { method: "DELETE" }),
+    request<{ message: string }>(`/instagram/${id}`, { method: "DELETE" }).then((res) => {
+      clearCache("lf_instagram_posts");
+      return res;
+    }),
 
-  // ── Testimonial Admin APIs (doctor auth) ──
   listTestimonialsAdmin: () => request<{ testimonials: Testimonial[] }>("/testimonials"),
   createTestimonial: (payload: FormData) =>
     fetch(`${API_BASE}/testimonials`, {
@@ -573,6 +686,7 @@ export const api = {
       credentials: "include"
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      clearCache("lf_testimonials");
       return res.json() as Promise<{ testimonial: Testimonial }>;
     }),
   updateTestimonial: (id: string, payload: FormData) =>
@@ -582,12 +696,15 @@ export const api = {
       credentials: "include"
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.text()) || "Request failed");
+      clearCache("lf_testimonials");
       return res.json() as Promise<{ testimonial: Testimonial }>;
     }),
   deleteTestimonial: (id: string) =>
-    request<{ message: string }>(`/testimonials/${id}`, { method: "DELETE" }),
+    request<{ message: string }>(`/testimonials/${id}`, { method: "DELETE" }).then((res) => {
+      clearCache("lf_testimonials");
+      return res;
+    }),
 
-  // ── Messages Admin APIs (doctor auth) ──
   listMessages: () => request<{ messages: ContactMessage[] }>("/messages"),
   markMessageRead: (id: string) =>
     request<{ message: ContactMessage }>(`/messages/${id}/read`, { method: "PATCH" }),
