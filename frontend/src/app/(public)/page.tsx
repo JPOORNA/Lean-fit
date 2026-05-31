@@ -166,7 +166,7 @@ export default function LandingPage() {
                   <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} style={{ position: 'absolute', top: -20, right: -16, zIndex: 2 }}>
                     <Box sx={{ position: 'relative', width: { xs: 80, md: 110 }, height: { xs: 80, md: 110 }, borderRadius: '16px', overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', border: '3px solid #fff', display: { xs: 'none', sm: 'block' } }}>
                       <Image 
-                        src="/healthy-bowl.png" 
+                        src="/leanfit.webp" 
                         alt="" 
                         fill 
                         style={{ objectFit: 'cover' }} 
