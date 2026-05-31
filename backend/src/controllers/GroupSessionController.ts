@@ -59,7 +59,7 @@ export const GroupSessionController = {
     const doctor = await User.findOne({ role: "doctor" });
     if (!doctor) throw new AppError("Doctor not found", 404, "DOCTOR_NOT_FOUND");
 
-    const settings = await DoctorSettings.findOne({ doctorId: doctor.id });
+    const settings = await DoctorSettings.findOne();
     if (!settings) throw new AppError("Settings not found", 404, "SETTINGS_NOT_FOUND");
 
     const doctorTz = settings.timezone || "UTC";

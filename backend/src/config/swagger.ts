@@ -238,7 +238,6 @@ const options: swaggerJsdoc.Options = {
           type: "object",
           properties: {
             _id: { type: "string" },
-            doctorId: { type: "string" },
             timezone: { type: "string" },
             weeklyAvailability: { type: "array", items: { type: "object" } },
             breaks: { type: "array", items: { type: "object" } },

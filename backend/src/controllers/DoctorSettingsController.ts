@@ -5,7 +5,7 @@ import { parseDateTimeInTimezone } from "../utils/date";
 
 export const DoctorSettingsController = {
   getSettings: async (req: Request, res: Response) => {
-    const settings = await DoctorSettings.findOne({ doctorId: req.user?.id });
+    const settings = await DoctorSettings.findOne();
     res.json({ settings });
   },
 
@@ -20,9 +20,9 @@ export const DoctorSettingsController = {
   },
 
   upsertSettings: async (req: Request, res: Response) => {
-    const existing = await DoctorSettings.findOne({ doctorId: req.user?.id });
+    const existing = await DoctorSettings.findOne();
     const tz = req.body.timezone || existing?.timezone || req.user?.timezone || "UTC";
-    const updatePayload: Record<string, unknown> = { ...req.body, doctorId: req.user?.id };
+    const updatePayload: Record<string, unknown> = { ...req.body };
     if (Array.isArray(req.body.blockedSlots)) {
       updatePayload.blockedSlots = req.body.blockedSlots.map((slot: { start: string; end: string; reason?: string }) => ({
         ...slot,
@@ -32,7 +32,7 @@ export const DoctorSettingsController = {
     }
 
     const settings = await DoctorSettings.findOneAndUpdate(
-      { doctorId: req.user?.id },
+      {},
       { $set: updatePayload },
       { upsert: true, new: true }
     );
@@ -46,7 +46,7 @@ export const DoctorSettingsController = {
   },
 
   addHoliday: async (req: Request, res: Response) => {
-    const settings = await DoctorSettings.findOne({ doctorId: req.user?.id });
+    const settings = await DoctorSettings.findOne();
     if (!settings) throw new AppError("Settings not found", 404, "NOT_FOUND");
     settings.holidays.push(req.body);
     await settings.save();
@@ -54,7 +54,7 @@ export const DoctorSettingsController = {
   },
 
   addBreak: async (req: Request, res: Response) => {
-    const settings = await DoctorSettings.findOne({ doctorId: req.user?.id });
+    const settings = await DoctorSettings.findOne();
     if (!settings) throw new AppError("Settings not found", 404, "NOT_FOUND");
     settings.breaks.push(req.body);
     await settings.save();
@@ -62,7 +62,7 @@ export const DoctorSettingsController = {
   },
 
   blockSlot: async (req: Request, res: Response) => {
-    const settings = await DoctorSettings.findOne({ doctorId: req.user?.id });
+    const settings = await DoctorSettings.findOne();
     if (!settings) throw new AppError("Settings not found", 404, "NOT_FOUND");
     const tz = settings.timezone || req.user?.timezone || "UTC";
     settings.blockedSlots.push({

@@ -142,13 +142,12 @@ export const ScheduleService = {
 
       const baseDate = dayjs(dateStr);
       if (!baseDate.isValid()) return [];
-
+ 
       const testDate = dayjs.tz(`${dateStr} 12:00`, "YYYY-MM-DD HH:mm", tz).toDate();
       const { dayOfWeek } = getInTimezone(testDate, tz);
 
       const availability = (settings.weeklyAvailability || []).find((item) => item.dayOfWeek === dayOfWeek);
       if (!availability || !availability.workingHours) return [];
-
       const slots: Array<{ start: string; end: string }> = [];
 
       for (const range of availability.workingHours) {
@@ -164,7 +163,6 @@ export const ScheduleService = {
           iterations++;
           const slotStart = new Date(current);
           const slotEnd = new Date(current.getTime() + duration * 60000);
-
           try {
             this.assertSlotAllowed(settings, slotStart, slotEnd);
             const isTaken = (existingAppointments || []).some(a => {
@@ -172,8 +170,7 @@ export const ScheduleService = {
             }) || (existingGroupSessions || []).some(gs => {
               return dayjs(slotStart).isBefore(dayjs(gs.endTime)) && dayjs(slotEnd).isAfter(dayjs(gs.startTime));
             });
-            
-            if (!isTaken) {
+           if (!isTaken) {
               slots.push({
                 start: slotStart.toISOString(),
                 end: slotEnd.toISOString()

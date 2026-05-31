@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface DoctorSettingsDocument extends Document {
-  doctorId: mongoose.Types.ObjectId;
   timezone: string;
   weeklyAvailability: {
     dayOfWeek: number;
@@ -22,7 +21,6 @@ const timeRangeSchema = new Schema({
 
 const doctorSettingsSchema = new Schema<DoctorSettingsDocument>(
   {
-    doctorId: { type: Schema.Types.ObjectId, ref: "User", unique: true, required: true },
     timezone: { type: String, default: "UTC" },
     weeklyAvailability: {
       type: [
