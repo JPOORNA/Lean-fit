@@ -31,9 +31,6 @@ dietPlanSchema.index({ doctorId: 1 });
 
 dietPlanSchema.index({ assignedTo: 1 });
 
-dietPlanSchema.index(
-  { assignedTo: 1, isActive: 1 },
-  { unique: true, partialFilterExpression: { isActive: true } }
-);
+// Unique index removed to allow multiple active diet plans
 
 export const DietPlan = mongoose.model<DietPlanDocument>("DietPlan", dietPlanSchema);

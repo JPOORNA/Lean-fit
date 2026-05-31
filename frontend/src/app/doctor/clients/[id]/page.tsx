@@ -43,6 +43,7 @@ import {
   Assignment,
   CalendarViewMonth,
   ShowChart,
+  Delete,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import {
@@ -120,6 +121,8 @@ export default function ClientDetailView() {
   const [workoutPlanName, setWorkoutPlanName] = useState('');
   const [workoutPlanDesc, setWorkoutPlanDesc] = useState('');
   const [workoutPlanFile, setWorkoutPlanFile] = useState<File | null>(null);
+
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
 
   const [dynamicFields, setDynamicFields] = useState<{ key: string; label: string; type: "number" | "text" }[]>([]);
 
@@ -219,18 +222,23 @@ export default function ClientDetailView() {
   };
 
   const handleAssignDietPlan = async () => {
-    if (!dietPlanFile) {
+    if (!dietPlanFile && !editingPlanId) {
       alert("Please select a PDF file.");
       return;
     }
     try {
       const formData = new FormData();
-      formData.append('pdf', dietPlanFile);
+      if (dietPlanFile) formData.append('pdf', dietPlanFile);
       if (dietPlanName) formData.append('name', dietPlanName);
       if (dietPlanDesc) formData.append('description', dietPlanDesc);
 
-      await api.assignDietPlan(id as string, formData);
+      if (editingPlanId) {
+        await api.updateDietPlan(editingPlanId, formData);
+      } else {
+        await api.assignDietPlan(id as string, formData);
+      }
       setDietPlanOpen(false);
+      setEditingPlanId(null);
       window.location.reload();
     } catch (err: any) {
       console.error(err);
@@ -239,23 +247,66 @@ export default function ClientDetailView() {
   };
 
   const handleAssignWorkoutPlan = async () => {
-    if (!workoutPlanFile) {
+    if (!workoutPlanFile && !editingPlanId) {
       alert("Please select a PDF file.");
       return;
     }
     try {
       const formData = new FormData();
-      formData.append('pdf', workoutPlanFile);
+      if (workoutPlanFile) formData.append('pdf', workoutPlanFile);
       if (workoutPlanName) formData.append('name', workoutPlanName);
       if (workoutPlanDesc) formData.append('description', workoutPlanDesc);
 
-      await api.assignWorkoutPlan(id as string, formData);
+      if (editingPlanId) {
+        await api.updateWorkoutPlan(editingPlanId, formData);
+      } else {
+        await api.assignWorkoutPlan(id as string, formData);
+      }
       setWorkoutPlanOpen(false);
+      setEditingPlanId(null);
       window.location.reload();
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'Failed to assign workout plan');
     }
+  };
+
+  const handleDeleteDietPlan = async (planId: string) => {
+    if (!confirm("Are you sure you want to delete this diet plan?")) return;
+    try {
+      await api.deleteDietPlan(planId);
+      window.location.reload();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to delete plan');
+    }
+  };
+
+  const handleDeleteWorkoutPlan = async (planId: string) => {
+    if (!confirm("Are you sure you want to delete this workout plan?")) return;
+    try {
+      await api.deleteWorkoutPlan(planId);
+      window.location.reload();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to delete plan');
+    }
+  };
+
+  const openEditDietPlan = (plan: DietPlan) => {
+    setEditingPlanId(plan._id);
+    setDietPlanName(plan.name || '');
+    setDietPlanDesc(plan.description || '');
+    setDietPlanFile(null);
+    setDietPlanOpen(true);
+  };
+
+  const openEditWorkoutPlan = (plan: WorkoutPlan) => {
+    setEditingPlanId(plan._id);
+    setWorkoutPlanName(plan.name || '');
+    setWorkoutPlanDesc(plan.description || '');
+    setWorkoutPlanFile(null);
+    setWorkoutPlanOpen(true);
   };
 
   if (loading) return null;
@@ -355,7 +406,13 @@ export default function ClientDetailView() {
                       color="info"
                       startIcon={<Restaurant />} 
                       sx={{ mt: 1 }}
-                      onClick={() => setDietPlanOpen(true)}
+                      onClick={() => {
+                        setEditingPlanId(null);
+                        setDietPlanName('');
+                        setDietPlanDesc('');
+                        setDietPlanFile(null);
+                        setDietPlanOpen(true);
+                      }}
                     >
                       Manage Diet Plan
                     </Button>
@@ -365,7 +422,13 @@ export default function ClientDetailView() {
                       color="warning"
                       startIcon={<FitnessCenter />} 
                       sx={{ mt: 1 }}
-                      onClick={() => setWorkoutPlanOpen(true)}
+                      onClick={() => {
+                        setEditingPlanId(null);
+                        setWorkoutPlanName('');
+                        setWorkoutPlanDesc('');
+                        setWorkoutPlanFile(null);
+                        setWorkoutPlanOpen(true);
+                      }}
                     >
                       Manage Workout Plan
                     </Button>
@@ -733,6 +796,8 @@ export default function ClientDetailView() {
                             <Typography variant="caption" color="text.secondary">{p.description || 'No description'}</Typography>
                           </Box>
                           <Button size="small" variant="text" href={p.fileUrl} target="_blank">Download</Button>
+                          <IconButton onClick={() => openEditDietPlan(p)} color="primary"><Edit /></IconButton>
+                          <IconButton onClick={() => handleDeleteDietPlan(p._id)} color="error"><Delete /></IconButton>
                         </Card>
                       </Grid>
                     ))}
@@ -757,6 +822,8 @@ export default function ClientDetailView() {
                             <Typography variant="caption" color="text.secondary">{p.description || 'No description'}</Typography>
                           </Box>
                           <Button size="small" variant="text" href={p.fileUrl} target="_blank">Download</Button>
+                          <IconButton onClick={() => openEditWorkoutPlan(p)} color="primary"><Edit /></IconButton>
+                          <IconButton onClick={() => handleDeleteWorkoutPlan(p._id)} color="error"><Delete /></IconButton>
                         </Card>
                       </Grid>
                     ))}
@@ -910,10 +977,12 @@ export default function ClientDetailView() {
 
         {/* Manage Diet Plan Dialog */}
         <Dialog open={dietPlanOpen} onClose={() => setDietPlanOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Assign Diet Plan</DialogTitle>
+          <DialogTitle>{editingPlanId ? 'Edit Diet Plan' : 'Assign Diet Plan'}</DialogTitle>
           <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Upload a new diet plan PDF. This will replace the currently active diet plan.
+              {editingPlanId 
+                ? 'Update the diet plan details. You can also upload a new PDF to replace the old one.' 
+                : 'Upload a new diet plan PDF. Max 3 active plans allowed.'}
             </Typography>
             <TextField 
               label="Plan Name" 
@@ -957,10 +1026,12 @@ export default function ClientDetailView() {
 
         {/* Manage Workout Plan Dialog */}
         <Dialog open={workoutPlanOpen} onClose={() => setWorkoutPlanOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Assign Workout Plan</DialogTitle>
+          <DialogTitle>{editingPlanId ? 'Edit Workout Plan' : 'Assign Workout Plan'}</DialogTitle>
           <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Upload a new workout plan PDF. This will replace the currently active workout plan.
+              {editingPlanId 
+                ? 'Update the workout plan details. You can also upload a new PDF to replace the old one.' 
+                : 'Upload a new workout plan PDF. Max 3 active plans allowed.'}
             </Typography>
             <TextField 
               label="Plan Name" 
