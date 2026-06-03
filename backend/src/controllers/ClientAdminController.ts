@@ -8,6 +8,11 @@ import { BodyMetrics } from "../models/BodyMetrics";
 import { WorkoutLog } from "../models/WorkoutLog";
 import { ClientSessionService } from "../services/ClientSessionService";
 import { deleteMultipleFromR2 } from "../utils/r2Upload";
+import { Payment } from "../models/Payment";
+import { PaymentService } from "../services/PaymentService";
+import { DietPlan } from "../models/DietPlan";
+import { WorkoutPlan } from "../models/WorkoutPlan";
+import { GroupSessionSlot } from "../models/GroupSessionSlot";
 
 export const ClientAdminController = {
   listAll: async (req: Request, res: Response) => {
@@ -116,5 +121,52 @@ export const ClientAdminController = {
 
     await user.save();
     res.json({ user });
+  },
+
+  deleteUser: async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const refundAll = req.query.refundAll === "true";
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError("User not found", 404, "NOT_FOUND");
+    }
+
+    if (refundAll) {
+      const paidPayments = await Payment.find({ userId: user._id, status: "paid" });
+      for (const payment of paidPayments) {
+        try {
+          await PaymentService.initiateRefund(payment._id.toString());
+        } catch (err) {
+          console.error(`Failed to refund payment ${payment._id} for user ${userId}:`, err);
+        }
+      }
+    }
+
+    const meals = await MealLog.find({ userId: user._id }, { imageUrl: 1 });
+    const imageUrls = meals.map(m => m.imageUrl).filter(Boolean);
+
+    await Promise.all([
+      MealLog.deleteMany({ userId: user._id }),
+      BodyMetrics.deleteMany({ userId: user._id }),
+      WorkoutLog.deleteMany({ userId: user._id }),
+      ClientSessionSchedule.deleteMany({ userId: user._id }),
+      Appointment.deleteMany({ userId: user._id }),
+      DietPlan.deleteMany({ assignedTo: user._id }),
+      WorkoutPlan.deleteMany({ assignedTo: user._id }),
+      GroupSessionSlot.updateMany({ bookedUserIds: user._id }, { $pull: { bookedUserIds: user._id } })
+    ]);
+
+    if (imageUrls.length > 0) {
+      try {
+        await deleteMultipleFromR2(imageUrls);
+      } catch (err) {
+        console.error("Failed to delete meals images from R2:", err);
+      }
+    }
+
+    await User.findByIdAndDelete(user._id);
+
+    res.json({ success: true, message: "User deleted successfully" });
   }
 };

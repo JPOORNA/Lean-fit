@@ -738,4 +738,10 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ doctorId })
     }),
+  deleteClient: (userId: string, refundAll: boolean) =>
+    request<{ success: boolean; message: string }>(`/clients/${userId}?refundAll=${refundAll}`, { method: "DELETE" }),
+  deleteGroupSessionSlot: (slotId: string, refundAll: boolean) =>
+    request<{ success: boolean; message: string }>(`/group-sessions/${slotId}?refundAll=${refundAll}`, { method: "DELETE" }),
+  deleteGroupSessionBooking: (slotId: string, userId: string, refund: boolean) =>
+    request<{ success: boolean; message: string }>(`/group-sessions/${slotId}/bookings/${userId}?refund=${refund}`, { method: "DELETE" }),
 };

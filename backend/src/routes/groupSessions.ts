@@ -179,4 +179,68 @@ router.patch("/:id/end", requireRole("doctor"), asyncHandler(GroupSessionControl
  */
 router.post("/:id/book", requireRole("user", "client"), validate(groupSessionBookSchema), asyncHandler(GroupSessionController.book));
 
+/**
+ * @openapi
+ * /group-sessions/{id}:
+ *   delete:
+ *     tags: [Group Sessions]
+ *     summary: Delete a group session slot and optionally refund all booked clients (doctor)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *       - name: refundAll
+ *         in: query
+ *         required: false
+ *         schema: { type: string, enum: [true, false] }
+ *     responses:
+ *       200:
+ *         description: Slot deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ */
+router.delete("/:id", requireRole("doctor"), asyncHandler(GroupSessionController.deleteSlot));
+
+/**
+ * @openapi
+ * /group-sessions/{id}/bookings/{userId}:
+ *   delete:
+ *     tags: [Group Sessions]
+ *     summary: Remove a booking from a group session slot (doctor)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *       - name: refund
+ *         in: query
+ *         required: false
+ *         schema: { type: string, enum: [true, false] }
+ *     responses:
+ *       200:
+ *         description: Booking removed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ */
+router.delete("/:id/bookings/:userId", requireRole("doctor"), asyncHandler(GroupSessionController.deleteBooking));
+
 export { router as groupSessionRoutes };
