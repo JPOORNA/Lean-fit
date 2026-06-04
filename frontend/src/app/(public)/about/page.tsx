@@ -164,7 +164,7 @@ export default function AboutPage() {
                     letterSpacing: -0.5,
                   }}
                 >
-                  ISSA Certified Nutritionist
+                  ISSA Certified Nutritionist 
                 </Typography>
                 <Typography
                   variant="body1"
