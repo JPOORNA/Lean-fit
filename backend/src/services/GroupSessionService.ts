@@ -20,7 +20,7 @@ export const GroupSessionService = {
       throw new AppError("Doctor not found", 404, "DOCTOR_NOT_FOUND");
     }
 
-    const settings = await DoctorSettings.findOne({ doctorId });
+    const settings = await DoctorSettings.findOne();
     if (!settings) {
       throw new AppError("Doctor settings missing", 409, "SETTINGS_MISSING");
     }

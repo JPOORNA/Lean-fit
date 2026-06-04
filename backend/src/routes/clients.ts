@@ -148,4 +148,34 @@ router.patch("/:userId/subscription", validate(updateSubscriptionSchema), asyncH
  */
 router.patch("/:userId/role", validate(updateRoleSchema), asyncHandler(ClientAdminController.updateRole));
 
+/**
+ * @openapi
+ * /clients/{userId}:
+ *   delete:
+ *     tags: [Clients]
+ *     summary: Delete a user and purge data (doctor)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *       - name: refundAll
+ *         in: query
+ *         required: false
+ *         schema: { type: string, enum: [true, false] }
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ */
+router.delete("/:userId", asyncHandler(ClientAdminController.deleteUser));
+
 export { router as clientRoutes };

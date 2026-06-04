@@ -26,8 +26,10 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
-import { Refresh, VideoCall, Edit } from '@mui/icons-material';
+import { Refresh, VideoCall, Edit, Delete } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/layout/PageContainer';
 import { api, GroupSessionBooking, GroupSessionSlot } from '@/lib/api';
@@ -58,6 +60,67 @@ export default function DoctorGroupSessionsPage() {
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [bookingsError, setBookingsError] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+
+  const [deleteSlotDialogOpen, setDeleteSlotDialogOpen] = useState(false);
+  const [deletingSlotItem, setDeletingSlotItem] = useState<GroupSessionSlot | null>(null);
+  const [refundAllOnDeleteSlot, setRefundAllOnDeleteSlot] = useState(false);
+  const [deletingSlot, setDeletingSlot] = useState(false);
+  const [deleteSlotError, setDeleteSlotError] = useState('');
+
+  const [deleteBookingDialogOpen, setDeleteBookingDialogOpen] = useState(false);
+  const [deletingBookingItem, setDeletingBookingItem] = useState<GroupSessionBooking | null>(null);
+  const [refundOnDeleteBooking, setRefundOnDeleteBooking] = useState(false);
+  const [deletingBooking, setDeletingBooking] = useState(false);
+  const [deleteBookingError, setDeleteBookingError] = useState('');
+
+  const onOpenDeleteSlot = (slot: GroupSessionSlot) => {
+    setDeletingSlotItem(slot);
+    setRefundAllOnDeleteSlot(false);
+    setDeleteSlotError('');
+    setDeleteSlotDialogOpen(true);
+  };
+
+  const onDeleteSlot = async () => {
+    if (!deletingSlotItem) return;
+    setDeletingSlot(true);
+    setDeleteSlotError('');
+    try {
+      await api.deleteGroupSessionSlot(deletingSlotItem._id, refundAllOnDeleteSlot);
+      setDeleteSlotDialogOpen(false);
+      setDeletingSlotItem(null);
+      await fetchSlots();
+    } catch (err: any) {
+      setDeleteSlotError(err.message || 'Failed to delete slot.');
+    } finally {
+      setDeletingSlot(false);
+    }
+  };
+
+  const onOpenDeleteBooking = (booking: GroupSessionBooking) => {
+    setDeletingBookingItem(booking);
+    setRefundOnDeleteBooking(false);
+    setDeleteBookingError('');
+    setDeleteBookingDialogOpen(true);
+  };
+
+  const onDeleteBooking = async () => {
+    if (!bookingSlot || !deletingBookingItem) return;
+    setDeletingBooking(true);
+    setDeleteBookingError('');
+    try {
+      const uId = typeof deletingBookingItem.userId === 'object' ? deletingBookingItem.userId._id : deletingBookingItem.userId;
+      await api.deleteGroupSessionBooking(bookingSlot._id, uId, refundOnDeleteBooking);
+      setDeleteBookingDialogOpen(false);
+      setDeletingBookingItem(null);
+      await fetchSlots();
+      const data = await api.listGroupSessionBookings(bookingSlot._id);
+      setBookings(data.bookings);
+    } catch (err: any) {
+      setDeleteBookingError(err.message || 'Failed to remove booking.');
+    } finally {
+      setDeletingBooking(false);
+    }
+  };
 
   const getErrorMessage = (err: unknown, fallback: string) => {
     if (err instanceof Error && err.message) return err.message;
@@ -277,8 +340,11 @@ export default function DoctorGroupSessionsPage() {
                   </TableCell>
                   <TableCell align="right">
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <IconButton size="small" onClick={() => onOpenEdit(slot)}>
+                      <IconButton size="small" onClick={() => onOpenEdit(slot)} title="Edit Slot">
                         <Edit fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => onOpenDeleteSlot(slot)} title="Delete Slot">
+                        <Delete fontSize="small" />
                       </IconButton>
                       <Button size="small" variant="outlined" onClick={() => onOpenBookings(slot)}>
                         Bookings
@@ -399,6 +465,7 @@ export default function DoctorGroupSessionsPage() {
                     <TableCell sx={{ fontWeight: 700 }}>Client</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Amount</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700 }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -430,6 +497,11 @@ export default function DoctorGroupSessionsPage() {
                           </Select>
                         </FormControl>
                       </TableCell>
+                      <TableCell align="right">
+                        <IconButton size="small" color="error" onClick={() => onOpenDeleteBooking(booking)} title="Remove Booking">
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -439,6 +511,64 @@ export default function DoctorGroupSessionsPage() {
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setBookingSlot(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteSlotDialogOpen} onClose={() => !deletingSlot && setDeleteSlotDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete Group Session Slot</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {deleteSlotError ? <Alert severity="error" sx={{ mb: 2 }}>{deleteSlotError}</Alert> : null}
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to delete the group session scheduled for:
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
+            {deletingSlotItem && formatInTimeZone(deletingSlotItem.startTime, user?.timezone, { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+          </Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={refundAllOnDeleteSlot}
+                onChange={(e) => setRefundAllOnDeleteSlot(e.target.checked)}
+                color="primary"
+              />
+            }
+            label={`Refund all booked users (${deletingSlotItem?.bookedUserIds.length || 0} booked)`}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteSlotDialogOpen(false)} disabled={deletingSlot}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={onDeleteSlot} disabled={deletingSlot}>
+            {deletingSlot ? 'Deleting...' : 'Delete Slot'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteBookingDialogOpen} onClose={() => !deletingBooking && setDeleteBookingDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Remove Booking</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {deleteBookingError ? <Alert severity="error" sx={{ mb: 2 }}>{deleteBookingError}</Alert> : null}
+          <Typography variant="body1" gutterBottom>
+            Remove booking for:
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
+            {deletingBookingItem && (typeof deletingBookingItem.userId === 'object' ? deletingBookingItem.userId.name : deletingBookingItem.userId)}
+          </Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={refundOnDeleteBooking}
+                onChange={(e) => setRefundOnDeleteBooking(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Refund payment amount"
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteBookingDialogOpen(false)} disabled={deletingBooking}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={onDeleteBooking} disabled={deletingBooking}>
+            {deletingBooking ? 'Removing...' : 'Remove Booking'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

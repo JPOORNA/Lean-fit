@@ -43,7 +43,6 @@ async function seed() {
     // Create doctor settings with availability
     const now = new Date();
     await DoctorSettings.create({
-      doctorId: doctor._id,
       timezone: "Asia/Kolkata",
       defaultSlotDurationMinutes: 60,
       appointmentFeePaise: 50000,

@@ -87,7 +87,7 @@ export const ClientSessionService = {
       throw new AppError("Doctor not found", 404, "DOCTOR_NOT_FOUND");
     }
 
-    const settings = await DoctorSettings.findOne({ doctorId });
+    const settings = await DoctorSettings.findOne();
     const tz = settings?.timezone || doctor.timezone || "UTC";
 
     const startDate = DATE_ONLY.test(data.startDate)
@@ -159,7 +159,7 @@ export const ClientSessionService = {
       throw new AppError("Doctor not found", 404, "DOCTOR_NOT_FOUND");
     }
 
-    const settings = await DoctorSettings.findOne({ doctorId });
+    const settings = await DoctorSettings.findOne();
     const tz = settings?.timezone || doctor.timezone || "UTC";
 
     const startDate = DATE_ONLY.test(data.startDate)

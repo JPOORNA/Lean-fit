@@ -23,6 +23,13 @@ import {
   ListItemText,
   Divider,
   TablePagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControlLabel,
+  Checkbox,
+  Alert,
 } from '@mui/material';
 import {
   Person,
@@ -30,7 +37,8 @@ import {
   Search,
   Visibility,
   MoreVert,
-  Refresh
+  Refresh,
+  Delete
 } from '@mui/icons-material';
 import PageContainer from '@/components/layout/PageContainer';
 import { api, User } from '@/lib/api';
@@ -46,9 +54,31 @@ export default function ClientsPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const router = useRouter();
 
+  const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
+  const [refundAllOnDelete, setRefundAllOnDelete] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [deleteUserError, setDeleteUserError] = useState('');
+
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    setDeletingUser(true);
+    setDeleteUserError('');
+    try {
+      await api.deleteClient(selectedUser._id, refundAllOnDelete);
+      setDeleteUserDialogOpen(false);
+      setSelectedUser(null);
+      setRefundAllOnDelete(false);
+      await fetchClients();
+    } catch (err: any) {
+      setDeleteUserError(err.message || 'Failed to delete user.');
+    } finally {
+      setDeletingUser(false);
+    }
+  };
 
   // Debounce search input to avoid redundant API hits while typing
   useEffect(() => {
@@ -278,7 +308,58 @@ export default function ClientsPage() {
           <ListItemIcon><Visibility fontSize="small" /></ListItemIcon>
           <ListItemText primary="View Details" />
         </MenuItem>
+        <MenuItem 
+          onClick={() => {
+            setDeleteUserDialogOpen(true);
+            setAnchorEl(null);
+          }} 
+          sx={{ color: 'error.main' }}
+        >
+          <ListItemIcon><Delete fontSize="small" color="error" /></ListItemIcon>
+          <ListItemText primary="Delete User" />
+        </MenuItem>
       </Menu>
+
+      <Dialog
+        open={deleteUserDialogOpen}
+        onClose={() => !deletingUser && setDeleteUserDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete User</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {deleteUserError && <Alert severity="error" sx={{ mb: 2 }}>{deleteUserError}</Alert>}
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to delete user <strong>{selectedUser?.name}</strong> ({selectedUser?.email})?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            This will purge all their logs (meals, workouts, metrics) and any assigned plans. This action cannot be undone.
+          </Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={refundAllOnDelete}
+                onChange={(e) => setRefundAllOnDelete(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Refund all paid payments for this user"
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteUserDialogOpen(false)} disabled={deletingUser}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeleteUser}
+            disabled={deletingUser}
+          >
+            {deletingUser ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

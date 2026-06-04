@@ -6,6 +6,9 @@ import { AppError } from "../utils/errors";
 import { dateKeyInTimezone, endOfDayInTimezone, parseDateTimeInTimezone, startOfDayInTimezone } from "../utils/date";
 import { PaymentRepository } from "../repositories/PaymentRepository";
 import { GroupSessionSlotRepository } from "../repositories/GroupSessionSlotRepository";
+import { GroupSessionSlot } from "../models/GroupSessionSlot";
+import { Payment } from "../models/Payment";
+import { PaymentService } from "../services/PaymentService";
 
 export const GroupSessionController = {
   create: async (req: Request, res: Response) => {
@@ -59,7 +62,7 @@ export const GroupSessionController = {
     const doctor = await User.findOne({ role: "doctor" });
     if (!doctor) throw new AppError("Doctor not found", 404, "DOCTOR_NOT_FOUND");
 
-    const settings = await DoctorSettings.findOne({ doctorId: doctor.id });
+    const settings = await DoctorSettings.findOne();
     if (!settings) throw new AppError("Settings not found", 404, "SETTINGS_NOT_FOUND");
 
     const doctorTz = settings.timezone || "UTC";
@@ -102,5 +105,64 @@ export const GroupSessionController = {
   end: async (req: Request, res: Response) => {
     const slot = await GroupSessionService.endSlot(req.user!.id, req.params.id);
     res.json({ slot });
+  },
+
+  deleteSlot: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const refundAll = req.query.refundAll === "true";
+
+    const slot = await GroupSessionSlot.findById(id);
+    if (!slot) {
+      throw new AppError("Group session not found", 404, "NOT_FOUND");
+    }
+
+    if (slot.doctorId.toString() !== req.user!.id) {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    if (refundAll) {
+      const paidPayments = await Payment.find({ groupSessionSlotId: slot._id, status: "paid" });
+      for (const payment of paidPayments) {
+        try {
+          await PaymentService.initiateRefund(payment._id.toString());
+        } catch (err) {
+          console.error(`Failed to refund payment ${payment._id} for group session ${id}:`, err);
+        }
+      }
+    }
+
+    await GroupSessionSlot.findByIdAndDelete(id);
+
+    res.json({ success: true, message: "Group session slot deleted successfully" });
+  },
+
+  deleteBooking: async (req: Request, res: Response) => {
+    const { id, userId } = req.params;
+    const refund = req.query.refund === "true";
+
+    const slot = await GroupSessionSlot.findById(id);
+    if (!slot) {
+      throw new AppError("Group session not found", 404, "NOT_FOUND");
+    }
+
+    if (slot.doctorId.toString() !== req.user!.id) {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    slot.bookedUserIds = slot.bookedUserIds.filter((bId) => bId.toString() !== userId);
+    await slot.save();
+
+    if (refund) {
+      const payment = await Payment.findOne({ groupSessionSlotId: slot._id, userId, status: "paid" });
+      if (payment) {
+        try {
+          await PaymentService.initiateRefund(payment._id.toString());
+        } catch (err) {
+          console.error(`Failed to refund payment ${payment._id} for group session booking of user ${userId}:`, err);
+        }
+      }
+    }
+
+    res.json({ success: true, message: "Booking removed successfully" });
   }
 };

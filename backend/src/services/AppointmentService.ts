@@ -21,7 +21,7 @@ export const AppointmentService = {
       throw new AppError("Doctor not found", 404, "DOCTOR_NOT_FOUND");
     }
 
-    const settings = await DoctorSettings.findOne({ doctorId: doctor.id });
+    const settings = await DoctorSettings.findOne();
     if (!settings) {
       throw new AppError("Doctor settings missing", 409, "SETTINGS_MISSING");
     }
@@ -125,7 +125,7 @@ export const AppointmentService = {
       throw new AppError("Doctor not found", 404, "DOCTOR_NOT_FOUND");
     }
 
-    const settings = await DoctorSettings.findOne({ doctorId: doctor.id });
+    const settings = await DoctorSettings.findOne();
     if (!settings) {
       throw new AppError("Doctor settings missing", 409, "SETTINGS_MISSING");
     }

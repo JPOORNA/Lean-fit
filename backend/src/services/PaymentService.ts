@@ -42,7 +42,7 @@ export const PaymentService = {
       throw new AppError("Payment order already exists for this appointment", 409, "PAYMENT_IN_PROGRESS");
     }
 
-    const settings = await DoctorSettings.findOne({ doctorId: appointment.doctorId });
+    const settings = await DoctorSettings.findOne();
     const configuredAmount = settings?.appointmentFeePaise ?? env.appointmentFeePaise;
     const amount = Math.max(0, Math.round(configuredAmount));
     const order = await razorpayClient.orders.create({
