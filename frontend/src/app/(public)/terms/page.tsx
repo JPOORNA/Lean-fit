@@ -128,7 +128,7 @@ const sections: PolicySection[] = [
       'These terms are governed by the laws of India. For any questions regarding this agreement, please contact:',
     ],
     bullets: [
-      `Email: ${publicContact.email}`,
+      ...publicContact.emails.map(email => `Email: ${email}`),
     ],
   },
 ];
@@ -154,7 +154,7 @@ export default function TermsOfServicePage() {
       ]}
       contactTitle="Need assistance?"
       contactDescription="If you have questions about the coaching scope, medical disclaimers, or your agreement, reach out below."
-      contactEmail={publicContact.email}
+      contactEmails={publicContact.emails}
       sections={sections}
     />
   );

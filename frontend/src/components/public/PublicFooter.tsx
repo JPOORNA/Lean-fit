@@ -51,7 +51,7 @@ export default function PublicFooter() {
               <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: -0.5, color: colors.footerHeading }}>Leanfit</Typography>
             </Box>
             <Typography variant="body2" sx={{ color: colors.footerText, lineHeight: 1.8, mb: 3, maxWidth: 300 }}>
-              Vishnu is an ISSA Certified Nutritionist & Fitness Coach brand focused on science-backed nutrition plans tailored to your unique body and lifestyle.
+              Vishnu is an ISSA Certified Nutrition Coach & Fitness Coach brand focused on science-backed nutrition plans tailored to your unique body and lifestyle.
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
               {[
@@ -99,12 +99,10 @@ export default function PublicFooter() {
           {/* Contact */}
           <Grid size={{ xs: 12, md: 3 }}>
             <Typography variant="overline" sx={{ color: colors.primary, fontWeight: 700, fontSize: '0.7rem', letterSpacing: 2, mb: 2, display: 'block' }}>Get in Touch</Typography>
-            {[
-              { icon: <Email sx={{ fontSize: 18 }} />, text: publicContact.email, href: `mailto:${publicContact.email}` },
-            ].map((item, i) => (
+            {publicContact.emails.map(email => ({ icon: <Email sx={{ fontSize: 18 }} />, text: email, href: `mailto:${email}` })).map((item, i) => (
               <Box key={i} component={item.href ? 'a' : 'div'} href={item.href} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.7, color: colors.footerText, textDecoration: 'none', '&:hover': item.href ? { color: colors.primary } : undefined }}>
                 <Box sx={{ color: colors.primary }}>{item.icon}</Box>
-                <Typography variant="body2">{item.text}</Typography>
+                <Typography variant="body2" sx={{ overflowWrap: 'anywhere', minWidth: 0 }}>{item.text}</Typography>
               </Box>
             ))}
           </Grid>
@@ -118,7 +116,7 @@ export default function PublicFooter() {
           </Typography>
           
           <Typography variant="caption" sx={{ color: colors.muted, textAlign: 'center' }}>
-            ISSA Certified Nutritionist & Fitness Coach
+            ISSA Certified Nutrition Coach & Fitness Coach
           </Typography>
         </Box>
       </Container>

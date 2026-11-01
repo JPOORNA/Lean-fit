@@ -235,6 +235,9 @@ function RegisterPageContent() {
     whatsappCountryCode: "+91",
     whatsappPhoneNumber: ""
   });
+  const [challengeId, setChallengeId] = useState('');
+  const [code, setCode] = useState('');
+  const [codeMessage, setCodeMessage] = useState('');
   const [acceptedPolicies, setAcceptedPolicies] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
   const [resetTrigger, setResetTrigger] = useState(0);
@@ -249,6 +252,10 @@ function RegisterPageContent() {
     }
     if (!form.whatsappPhoneNumber) {
       setStatus('WhatsApp Number is required.');
+      return;
+    }
+    if (!challengeId || code.length !== 6) {
+      setStatus('Enter the 6-digit code sent to your WhatsApp number.');
       return;
     }
     if (!captchaToken) {
@@ -267,7 +274,9 @@ function RegisterPageContent() {
         whatsappNumber: mergedWhatsappNumber,
         role: "user",
         timezone,
-        captchaToken
+        captchaToken,
+        challengeId,
+        code
       });
       router.push("/login");
     } catch (err: unknown) {
@@ -341,11 +350,11 @@ function RegisterPageContent() {
                     select
                     label="Code"
                     value={form.whatsappCountryCode}
-                    onChange={(e) => setForm({ ...form, whatsappCountryCode: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, whatsappCountryCode: e.target.value }); setChallengeId(''); setCode(''); setCodeMessage(''); }}
                     required
                     slotProps={{
                       select: {
-                        renderValue: (value: any) => value
+                        renderValue: (value) => String(value)
                       }
                     }}
                     sx={{
@@ -365,7 +374,7 @@ function RegisterPageContent() {
                     type="tel"
                     variant="outlined"
                     value={form.whatsappPhoneNumber}
-                    onChange={(e) => setForm({ ...form, whatsappPhoneNumber: e.target.value.replace(/\D/g, '') })}
+                    onChange={(e) => { setForm({ ...form, whatsappPhoneNumber: e.target.value.replace(/\D/g, '') }); setChallengeId(''); setCode(''); setCodeMessage(''); }}
                     required
                     placeholder="98765 43210"
                     slotProps={{
@@ -413,6 +422,18 @@ function RegisterPageContent() {
                   sx={{ alignItems: 'flex-start', mt: 0.5 }}
                 />
 
+                <Box sx={{ display: 'grid', gap: 2 }}>
+                  <Button variant="outlined" onClick={async () => {
+                    setLoading(true); setStatus(null); setCodeMessage('');
+                    try {
+                      const result = await api.requestOtp(`${form.whatsappCountryCode}${form.whatsappPhoneNumber}`, 'whatsapp', 'register');
+                      setChallengeId(result.challengeId); setCode(''); setCodeMessage('A 6-digit verification code was sent to your WhatsApp number.');
+                    } catch (err) { setStatus(err instanceof Error ? err.message : 'Could not send code.'); }
+                    finally { setLoading(false); }
+                  }} disabled={loading || !form.whatsappPhoneNumber}>{challengeId ? 'Resend WhatsApp code' : 'Send WhatsApp verification code'}</Button>
+                  {codeMessage && <Alert severity="info">{codeMessage}</Alert>}
+                  {challengeId && <TextField required label="WhatsApp verification code" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]{6}', autoComplete: 'one-time-code' } }} />}
+                </Box>
                 <TurnstileWidget 
                   onVerify={(token) => setCaptchaToken(token)} 
                   onExpire={() => setCaptchaToken("")} 
@@ -430,7 +451,7 @@ function RegisterPageContent() {
                   variant="contained"
                   fullWidth
                   size="large"
-                  disabled={loading}
+                  disabled={loading || !challengeId || code.length !== 6}
                   sx={{ 
                     bgcolor: colors.primary, 
                     color: '#fff', 

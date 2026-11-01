@@ -56,7 +56,8 @@ export const navItems: NavItem[] = [
 
   // Doctor Role
   { text: 'Dashboard', icon: <Dashboard />, path: '/doctor/dashboard', roles: ['doctor'] },
-  { text: 'Users', icon: <People />, path: '/doctor/clients', roles: ['doctor'] },
+  { text: 'Users', icon: <People />, path: '/doctor/users', roles: ['doctor'] },
+  { text: 'Clients', icon: <Assignment />, path: '/doctor/clients', roles: ['doctor'] },
   { text: 'Appointments', icon: <CalendarMonth />, path: '/doctor/appointments', roles: ['doctor'] },
   { text: 'Availability Map', icon: <CalendarViewMonth />, path: '/doctor/availability', roles: ['doctor'] },
   { text: 'Meal Pics', icon: <Restaurant />, path: '/doctor/meals', roles: ['doctor'] },
@@ -77,6 +78,7 @@ export const navItems: NavItem[] = [
   },
   { text: 'Payments', icon: <Payments />, path: '/doctor/payments', roles: ['doctor'] },
   { text: 'Messages', icon: <Email />, path: '/doctor/messages', roles: ['doctor'] },
+  { text: 'Profile', icon: <Person />, path: '/doctor/profile', roles: ['doctor'] },
   { text: 'Settings', icon: <Settings />, path: '/doctor/settings', roles: ['doctor'] },
 ];
 

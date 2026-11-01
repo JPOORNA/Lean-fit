@@ -1,3 +1,4 @@
+import { phoneSchema } from "../validators/contact";
 import { Router } from "express";
 import { ProfileController } from "../controllers/ProfileController";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -13,13 +14,14 @@ const updateProfileSchema = z.object({
   body: z.object({
     name: z.string().min(1).optional(),
     timezone: z.string().optional(),
-    whatsappNumber: z.string().optional()
+    whatsappNumber: phoneSchema.optional()
   })
 });
 
 const changePasswordSchema = z.object({
   body: z.object({
-    password: z.string().min(8, "Password must be at least 8 characters long")
+    currentPassword: z.string().min(1),
+    password: z.string().max(128).min(8, "Password must be at least 8 characters long")
   })
 });
 
@@ -78,4 +80,11 @@ router.patch("/", validate(updateProfileSchema), asyncHandler(ProfileController.
  */
 router.put("/password", validate(changePasswordSchema), asyncHandler(ProfileController.changePassword));
 
+const notificationPreferencesSchema = z.object({ body: z.object({
+  email: z.boolean(), whatsapp: z.boolean(), bookingConfirmation: z.boolean(), bookingReminder: z.boolean(),
+  subscriptionExpiry: z.boolean(), mealUpload: z.boolean(), bookingReminderMinutes: z.number().int().min(5).max(10080),
+  subscriptionReminderDays: z.number().int().min(0).max(30)
+}) });
+router.get("/notifications", asyncHandler(ProfileController.getNotifications));
+router.put("/notifications", validate(notificationPreferencesSchema), asyncHandler(ProfileController.updateNotifications));
 export { router as profileRoutes };

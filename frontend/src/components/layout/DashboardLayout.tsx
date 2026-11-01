@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
+  Alert,
   Drawer,
   AppBar,
   Toolbar,
   List,
   Typography,
-  Divider,
   IconButton,
   ListItem,
   ListItemButton,
@@ -23,7 +23,6 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  FitnessCenter,
   Person,
   Logout,
   ExpandLess,
@@ -48,6 +47,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -461,6 +466,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             bgcolor: 'background.default',
           }}
         >
+          {user?.clientExpiresAt && user.role !== 'doctor' && (
+            <Alert severity={new Date(user.clientExpiresAt).getTime() <= currentTime + 7 * 86400000 ? 'warning' : 'info'} sx={{ mb: 2 }}>
+              Subscription {new Date(user.clientExpiresAt).getTime() <= currentTime ? 'expired' : 'expires'}: {new Date(user.clientExpiresAt).toLocaleDateString(undefined, { dateStyle: 'long', timeZone: user.timezone || 'UTC' })}
+            </Alert>
+          )}
+          {user && user.role !== 'doctor' && !user.whatsappNumber && <Alert severity="warning" sx={{ mb: 2 }}>Please add your required WhatsApp number in <Link href={`/${user.role}/profile`}>your profile</Link> to receive WhatsApp notifications.</Alert>}
           {children}
         </Box>
       </Box>

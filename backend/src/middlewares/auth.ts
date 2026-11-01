@@ -14,9 +14,9 @@ export const requireAuth = async (req: Request, _res: Response, next: NextFuncti
       throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
     }
 
-    const payload = jwt.verify(token, env.jwtAccessSecret) as { sub: string };
+    const payload = jwt.verify(token, env.jwtAccessSecret) as { sub: string; version?: number };
     const user = await User.findById(payload.sub);
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || user.isGuest || (payload.version || 0) !== (user.authVersion || 0)) {
       throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
     }
 

@@ -38,7 +38,7 @@ type LegalPolicyPageProps = {
   summaryPoints: string[];
   contactTitle: string;
   contactDescription: string;
-  contactEmail: string;
+  contactEmails: string[];
   contactPhone?: string;
   contactAddress?: string;
   sections: PolicySection[];
@@ -55,7 +55,7 @@ export default function LegalPolicyPage({
   summaryPoints,
   contactTitle,
   contactDescription,
-  contactEmail,
+  contactEmails,
   contactPhone,
   contactAddress,
   sections,
@@ -379,7 +379,9 @@ export default function LegalPolicyPage({
                         <Typography sx={{ fontSize: '0.75rem', color: colors.muted, fontWeight: 800, letterSpacing: 1.4 }}>
                           Email
                         </Typography>
-                        <Typography sx={{ color: colors.heading, fontWeight: 700 }}>{contactEmail}</Typography>
+                        {contactEmails.map(email => (
+                          <Typography key={email} component="a" href={`mailto:${email}`} sx={{ display: 'block', color: colors.heading, fontWeight: 700, overflowWrap: 'anywhere', textUnderlineOffset: 3 }}>{email}</Typography>
+                        ))}
                       </Box>
                       {contactPhone ? (
                         <Box>

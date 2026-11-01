@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { FadeInUp, ScaleIn, StaggerContainer, StaggerItem, AnimatedCounter } from '@/components/public/AnimationWrappers';
 import PillBadge from '@/components/public/PillBadge';
+import HomeBookingPrompt from '@/components/public/HomeBookingPrompt';
 import { api, type InstagramPost, type Testimonial, type Service } from '@/lib/api';
 import { colors, gradientText } from '@/lib/colors';
 
@@ -65,6 +66,7 @@ export default function LandingPage() {
 
   return (
     <Box>
+      <HomeBookingPrompt />
       {/* HERO */}
       <Box sx={{ position: 'relative', minHeight: { xs: 'auto', md: '100vh' }, display: 'flex', alignItems: 'center', overflow: 'hidden', bgcolor: colors.pageBg, pt: { xs: 12, md: 0 }, pb: { xs: 6, md: 0 } }}>
         {/* Soft gradient blobs */}
@@ -75,7 +77,7 @@ export default function LandingPage() {
             {/* Text column */}
             <Grid size={{ xs: 12, md: 6 }}>
               <FadeInUp>
-                <PillBadge label="ISSA Certified Nutritionist & Fitness Coach" sx={{ mb: 3 }} />
+                <PillBadge label="ISSA Certified Nutrition Coach & Fitness Coach" sx={{ mb: 3 }} />
               </FadeInUp>
               <FadeInUp delay={0.1}>
                 <Typography variant="h1" sx={{ color: colors.heading, fontWeight: 900, fontSize: { xs: '2.2rem', sm: '2.8rem', md: '3.5rem' }, lineHeight: 1.1, mb: 1, letterSpacing: -1.5 }}>
@@ -84,7 +86,7 @@ export default function LandingPage() {
                   Your Life.
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, color: colors.primary, mb: 3, fontSize: { xs: '1.2rem', md: '1.5rem' } }}>
-                  Vishnu, ISSA Certified Nutritionist
+                  Vishnu, ISSA Certified Nutrition Coach
                 </Typography>
               </FadeInUp>
               <FadeInUp delay={0.2}>
@@ -96,7 +98,7 @@ export default function LandingPage() {
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <Button 
                     component={Link} 
-                    href="/register" 
+                    href="/book"
                     variant="contained" 
                     size="large" 
                     sx={{ 
@@ -220,6 +222,77 @@ export default function LandingPage() {
               <FadeInUp>
                 <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 5 } }}>
                   <PillBadge label="Explore" />
+                </Box>
+              </FadeInUp>
+        </Container>
+
+      {/* ─── TESTIMONIALS ─── */}
+      <Box sx={{ bgcolor: colors.cardBg, py: { xs: 6, md: 8 }, minHeight: 300 }}>
+        <Container maxWidth="xl">
+          <FadeInUp>
+            <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 5 } }}>
+              <Typography variant="h2" sx={{ fontWeight: 900, color: colors.heading, fontSize: { xs: '1.8rem', md: '2.4rem' }, letterSpacing: -0.5 }}>Real People. Real Results.</Typography>
+            </Box>
+          </FadeInUp>
+
+          {loadingTestimonials ? (
+            <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
+              {[1, 2, 3].map((i) => (
+                <Grid key={i} size={{ xs: 12, md: 4 }}>
+                  <Skeleton variant="rectangular" height={300} sx={{ borderRadius: '18px' }} />
+                </Grid>
+              ))}
+            </Grid>
+          ) : testimonials.length > 0 ? (
+            <>
+              <StaggerContainer>
+                <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
+                  {testimonials.map((t) => (
+                    <Grid key={t._id} size={{ xs: 12, md: 4 }}>
+                      <StaggerItem>
+                        <Card sx={{ height: '100%', borderRadius: '18px', border: `1px solid ${colors.borderLight}`, boxShadow: 'none', overflow: 'hidden' }}>
+                          {(t.beforeImageUrl || t.afterImageUrl) && (
+                            <Box sx={{ display: 'flex', height: 180, position: 'relative' }}>
+                              {t.beforeImageUrl && (
+                                <Box sx={{ flex: 1, position: 'relative', '&::after': { content: '"Before"', position: 'absolute', bottom: 8, left: 8, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '0.65rem', fontWeight: 700, px: 1, py: 0.3, borderRadius: '6px', zIndex: 1 } }}>
+                                  <Image src={t.beforeImageUrl} alt="Before" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" unoptimized />
+                                </Box>
+                              )}
+                              {t.afterImageUrl && (
+                                <Box sx={{ flex: 1, position: 'relative', '&::after': { content: '"After"', position: 'absolute', bottom: 8, right: 8, bgcolor: `${colors.primary}d9`, color: '#fff', fontSize: '0.65rem', fontWeight: 700, px: 1, py: 0.3, borderRadius: '6px', zIndex: 1 } }}>
+                                  <Image src={t.afterImageUrl} alt="After" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" unoptimized />
+                                </Box>
+                              )}
+                            </Box>
+                          )}
+                          <CardContent sx={{ p: 3 }}>
+                            <Rating value={t.rating} readOnly size="small" sx={{ mb: 1.5, color: colors.ratingGold }} />
+                            <Typography variant="body2" sx={{ color: colors.dark, fontStyle: 'italic', lineHeight: 1.7, mb: 2, minHeight: 60 }}>&ldquo;{t.quote}&rdquo;</Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: colors.heading }}>{t.clientName}</Typography>
+                              {t.weightLost && <Typography variant="caption" sx={{ bgcolor: colors.primaryFaint, color: colors.primary, fontWeight: 700, px: 1.5, py: 0.4, borderRadius: '8px' }}>{t.weightLost}</Typography>}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </StaggerItem>
+                    </Grid>
+                  ))}
+                </Grid>
+              </StaggerContainer>
+              <FadeInUp delay={0.3}>
+                <Box sx={{ textAlign: 'center', mt: 5 }}>
+                  <Button component={Link} href="/results" endIcon={<ArrowForward />} sx={{ color: colors.primary, fontWeight: 700, fontSize: '0.95rem', textTransform: 'none' }}>View All Results</Button>
+                </Box>
+              </FadeInUp>
+            </>
+          ) : null}
+        </Container>
+      </Box>
+
+        <Container maxWidth="xl">
+              <FadeInUp>
+                <Box sx={{ textAlign: 'center', mt: { xs: 4, md: 5 }, mb: { xs: 4, md: 5 } }}>
+
                   <Typography variant="h2" sx={{ fontWeight: 900, color: colors.heading, fontSize: { xs: '1.8rem', md: '2.5rem' }, letterSpacing: -0.5 }}>Discover Our Best Programs</Typography>
                 </Box>
               </FadeInUp>
@@ -413,69 +486,6 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      {/* ─── TESTIMONIALS ─── */}
-      <Box sx={{ bgcolor: colors.cardBg, py: { xs: 6, md: 8 }, minHeight: 300 }}>
-        <Container maxWidth="xl">
-          <FadeInUp>
-            <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 5 } }}>
-              <Typography variant="h2" sx={{ fontWeight: 900, color: colors.heading, fontSize: { xs: '1.8rem', md: '2.4rem' }, letterSpacing: -0.5 }}>Real People. Real Results.</Typography>
-            </Box>
-          </FadeInUp>
-          
-          {loadingTestimonials ? (
-            <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
-              {[1, 2, 3].map((i) => (
-                <Grid key={i} size={{ xs: 12, md: 4 }}>
-                  <Skeleton variant="rectangular" height={300} sx={{ borderRadius: '18px' }} />
-                </Grid>
-              ))}
-            </Grid>
-          ) : testimonials.length > 0 ? (
-            <>
-              <StaggerContainer>
-                <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
-                  {testimonials.map((t) => (
-                    <Grid key={t._id} size={{ xs: 12, md: 4 }}>
-                      <StaggerItem>
-                        <Card sx={{ height: '100%', borderRadius: '18px', border: `1px solid ${colors.borderLight}`, boxShadow: 'none', overflow: 'hidden' }}>
-                          {(t.beforeImageUrl || t.afterImageUrl) && (
-                            <Box sx={{ display: 'flex', height: 180, position: 'relative' }}>
-                              {t.beforeImageUrl && (
-                                <Box sx={{ flex: 1, position: 'relative', '&::after': { content: '"Before"', position: 'absolute', bottom: 8, left: 8, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '0.65rem', fontWeight: 700, px: 1, py: 0.3, borderRadius: '6px', zIndex: 1 } }}>
-                                  <Image src={t.beforeImageUrl} alt="Before" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" unoptimized />
-                                </Box>
-                              )}
-                              {t.afterImageUrl && (
-                                <Box sx={{ flex: 1, position: 'relative', '&::after': { content: '"After"', position: 'absolute', bottom: 8, right: 8, bgcolor: `${colors.primary}d9`, color: '#fff', fontSize: '0.65rem', fontWeight: 700, px: 1, py: 0.3, borderRadius: '6px', zIndex: 1 } }}>
-                                  <Image src={t.afterImageUrl} alt="After" fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 50vw, 16vw" unoptimized />
-                                </Box>
-                              )}
-                            </Box>
-                          )}
-                          <CardContent sx={{ p: 3 }}>
-                            <Rating value={t.rating} readOnly size="small" sx={{ mb: 1.5, color: colors.ratingGold }} />
-                            <Typography variant="body2" sx={{ color: colors.dark, fontStyle: 'italic', lineHeight: 1.7, mb: 2, minHeight: 60 }}>&ldquo;{t.quote}&rdquo;</Typography>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: colors.heading }}>{t.clientName}</Typography>
-                              {t.weightLost && <Typography variant="caption" sx={{ bgcolor: colors.primaryFaint, color: colors.primary, fontWeight: 700, px: 1.5, py: 0.4, borderRadius: '8px' }}>{t.weightLost}</Typography>}
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      </StaggerItem>
-                    </Grid>
-                  ))}
-                </Grid>
-              </StaggerContainer>
-              <FadeInUp delay={0.3}>
-                <Box sx={{ textAlign: 'center', mt: 5 }}>
-                  <Button component={Link} href="/results" endIcon={<ArrowForward />} sx={{ color: colors.primary, fontWeight: 700, fontSize: '0.95rem', textTransform: 'none' }}>View All Results</Button>
-                </Box>
-              </FadeInUp>
-            </>
-          ) : null}
-        </Container>
-      </Box>
-
       {/* ─── INSTAGRAM PREVIEW ─── */}
       <Box sx={{ bgcolor: colors.pageBg, py: { xs: 6, md: 8 }, minHeight: 200 }}>
         <Container maxWidth="xl">
@@ -484,7 +494,7 @@ export default function LandingPage() {
               <Typography variant="h2" sx={{ fontWeight: 900, color: colors.heading, fontSize: { xs: '1.8rem', md: '2.4rem' }, letterSpacing: -0.5 }}>Fresh From Instagram</Typography>
             </Box>
           </FadeInUp>
-          
+
           {loadingPosts ? (
             <Grid container spacing={2} sx={{ justifyContent: 'center' }}>
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -529,7 +539,7 @@ export default function LandingPage() {
           <FadeInUp>
             <Typography variant="h2" sx={{ color: colors.heading, fontWeight: 900, fontSize: { xs: '1.8rem', md: '2.4rem' }, mb: 2, letterSpacing: -0.5 }}>Ready for Real Change?</Typography>
             <Typography variant="body1" sx={{ color: colors.body, mb: 4, lineHeight: 1.7 }}>Take the first step to a healthier, more vibrant you. Book a free consultation and we'll craft a plan that fits your life.</Typography>
-            <Button component={Link} href="/register" variant="contained" size="large" endIcon={<ArrowForward />} sx={{ bgcolor: colors.primary, color: '#fff', fontWeight: 700, fontSize: '1rem', borderRadius: '14px', px: 5, py: 1.5, textTransform: 'none', boxShadow: `0 8px 30px ${colors.primaryShadow}`, '&:hover': { bgcolor: colors.primaryDark, transform: 'translateY(-2px)' }, transition: 'all 0.3s ease' }}>
+            <Button component={Link} href="/book" variant="contained" size="large" endIcon={<ArrowForward />} sx={{ bgcolor: colors.primary, color: '#fff', fontWeight: 700, fontSize: '1rem', borderRadius: '14px', px: 5, py: 1.5, textTransform: 'none', boxShadow: `0 8px 30px ${colors.primaryShadow}`, '&:hover': { bgcolor: colors.primaryDark, transform: 'translateY(-2px)' }, transition: 'all 0.3s ease' }}>
               Get Started
             </Button>
           </FadeInUp>

@@ -1,3 +1,7 @@
+import { promises as fs } from "fs";
+import path from "path";
+import crypto from "crypto";
+import { env } from "../config/env";
 import { PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { r2Client, r2Config } from "../config/r2";
@@ -36,6 +40,13 @@ export const uploadToR2 = async (
     }
   }
 
+  if (env.localUploads) {
+    await fs.mkdir(env.localUploadDir, { recursive: true });
+    const name = `${crypto.randomUUID()}${path.extname(originalnameToUpload)}`;
+    await fs.writeFile(path.join(env.localUploadDir, name), bufferToUpload);
+    return `${env.baseUrl}/uploads/${name}`;
+  }
+
   const timestamp = Date.now();
   const key = `${folder}/${timestamp}-${originalnameToUpload}`;
 
@@ -60,6 +71,7 @@ export const uploadToR2 = async (
 };
 
 export const deleteFromR2 = async (url: string): Promise<void> => {
+  if (env.localUploads) return;
   if (!url || !url.startsWith(r2Config.baseUrl)) return;
   
   const key = url.replace(`${r2Config.baseUrl}/`, "");
@@ -77,6 +89,7 @@ export const deleteFromR2 = async (url: string): Promise<void> => {
 };
 
 export const deleteMultipleFromR2 = async (urls: string[]): Promise<void> => {
+  if (env.localUploads) return;
   const keys = urls
     .filter(url => url && url.startsWith(r2Config.baseUrl))
     .map(url => ({ Key: url.replace(`${r2Config.baseUrl}/`, "") }));

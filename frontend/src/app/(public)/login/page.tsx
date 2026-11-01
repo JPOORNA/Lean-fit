@@ -103,6 +103,8 @@ function LoginPageContent() {
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(0,0,0,0.02)' } }}
                 />
 
+                <Link href="/forgot-password" style={{ color: colors.primary, fontWeight: 600 }}>Forgot password?</Link>
+
                 <TurnstileWidget 
                   onVerify={(token) => setCaptchaToken(token)} 
                   onExpire={() => setCaptchaToken("")} 

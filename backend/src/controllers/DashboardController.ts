@@ -106,7 +106,7 @@ export const DashboardController = {
       lastMetricsDate[m._id.toString()] = m.lastDate;
     });
 
-    res.json({ mealStatus, workoutStatus, metricsStatus, lastMetricsDate });
+    res.json({ mealStatus, meals, workoutStatus, metricsStatus, lastMetricsDate });
   },
 
   getClientStats: async (req: Request, res: Response) => {

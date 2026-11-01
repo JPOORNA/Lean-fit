@@ -1,3 +1,9 @@
+import { phoneSchema } from "../validators/contact";
+import { DoctorNotificationService } from "../services/DoctorNotificationService";
+import { z } from "zod";
+import { whatsappTemplateKeys } from "../models/DoctorSettings";
+import { WhatsAppTemplateService } from "../services/WhatsAppTemplateService";
+import { DoctorSettings } from "../models/DoctorSettings";
 import { Router } from "express";
 import { DoctorSettingsController } from "../controllers/DoctorSettingsController";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -9,6 +15,39 @@ import { upsertSchema, holidaySchema, breakSchema, blockSchema } from "../valida
 const router = Router();
 
 router.use(requireAuth);
+
+const recipientRule = z.object({
+  enabled: z.boolean(),
+  emails: z.array(z.string().trim().toLowerCase().email("Enter a valid recipient email address.")).transform(values => [...new Set(values)]),
+  whatsappNumbers: z.array(phoneSchema).transform(values => [...new Set(values)])
+}).strict().refine(value => !value.enabled || value.emails.length + value.whatsappNumbers.length > 0, {
+  message: "Add at least one email address or WhatsApp number, or turn this notification off."
+});
+const routingBody = z.object({
+  events: z.object({
+    bookingConfirmation: recipientRule, bookingReminder: recipientRule,
+    subscriptionExpiry: recipientRule, mealUpload: recipientRule
+  }).strict(),
+  bookingReminderMinutes: z.number().int().min(5).max(10080),
+  subscriptionReminderDays: z.number().int().min(0).max(30)
+}).strict();
+router.get("/notification-recipients", requireRole("doctor"), asyncHandler(async (_req, res) => {
+  res.json({ routing: await DoctorNotificationService.getRouting(), deliveryStatus: await DoctorNotificationService.getDeliveryStatus() });
+}));
+router.put("/notification-recipients", requireRole("doctor"), validate(z.object({ body: routingBody })), asyncHandler(async (req, res) => {
+  await DoctorSettings.findOneAndUpdate({}, { $set: { notificationRouting: req.body } }, { upsert: true, new: true, runValidators: true });
+  res.json({ routing: await DoctorNotificationService.getRouting() });
+}));
+
+const templateName = z.string().trim().max(512).regex(/^[a-z0-9_]*$/, "Use lowercase letters, numbers and underscores, or leave blank to use the environment default.");
+const templateNamesSchema = z.object({ body: z.object(Object.fromEntries(whatsappTemplateKeys.map(key => [key, templateName]))).strict() });
+router.get("/whatsapp-templates", requireRole("doctor"), asyncHandler(async (_req, res) => {
+  res.json(await WhatsAppTemplateService.getConfig());
+}));
+router.put("/whatsapp-templates", requireRole("doctor"), validate(templateNamesSchema), asyncHandler(async (req, res) => {
+  await DoctorSettings.findOneAndUpdate({}, { $set: { whatsappTemplates: req.body } }, { upsert: true, new: true, runValidators: true });
+  res.json(await WhatsAppTemplateService.getConfig());
+}));
 
 /**
  * @openapi

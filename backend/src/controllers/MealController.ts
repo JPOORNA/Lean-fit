@@ -1,3 +1,4 @@
+import { NotificationService } from "../services/NotificationService";
 import { Request, Response } from "express";
 import { MealService } from "../services/MealService";
 import { uploadToR2 } from "../utils/r2Upload";
@@ -24,6 +25,7 @@ export const MealController = {
       notes: req.body.notes,
       takenAt: new Date(req.body.takenAt)
     });
+    await NotificationService.mealUploaded(req.user!.id, meal.id).catch(() => console.error("Meal notification could not be queued"));
     res.status(201).json({ meal });
   },
 

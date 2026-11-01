@@ -1,3 +1,5 @@
+import { ContactIdentityService } from "./ContactIdentityService";
+import { OtpService, normalizePhone } from "./OtpService";
 import bcrypt from "bcryptjs";
 import { UserRepository } from "../repositories/UserRepository";
 import { Role, UserDocument } from "../models/User";
@@ -12,7 +14,7 @@ const sanitizeUser = (user: UserDocument) => {
 };
 
 export const AuthService = {
-  async register(data: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string; whatsappNumber?: string }) {
+  async register(data: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string; whatsappNumber?: string; challengeId?: string; code?: string }) {
     if (data.role === "doctor") {
       const existingDoctor = await UserRepository.countDoctors();
       if (existingDoctor > 0) {
@@ -25,8 +27,22 @@ export const AuthService = {
 
     if (data.role === "user" || data.role === "client" || data.role === "doctor") {
       const existing = await UserRepository.findByEmail(data.email);
-      if (existing) {
-        throw new AppError("Email already registered", 409, "EMAIL_EXISTS");
+      if (existing && !existing.isActive) throw new AppError("Contact support to register", 403, "INACTIVE_ACCOUNT");
+      if (!data.whatsappNumber || !data.challengeId || !data.code) throw new AppError("Verify your WhatsApp number before creating an account.", 400, "WHATSAPP_VERIFICATION_REQUIRED");
+      data.whatsappNumber = normalizePhone(data.whatsappNumber);
+      if (existing?.isGuest && normalizePhone(existing.whatsappNumber || "") !== data.whatsappNumber) {
+        throw new AppError("Use the WhatsApp number from your previous bookings to link your account, or contact support.", 409, "CONTACT_MISMATCH");
+      }
+      if (existing && !existing.isGuest) throw new AppError("Email already registered", 409, "EMAIL_EXISTS");
+      await ContactIdentityService.assertPhoneAvailable(data.whatsappNumber, existing?.id);
+      await OtpService.consume(data.challengeId, data.code, "register", data.whatsappNumber, "whatsapp");
+      if (existing?.isGuest) {
+        existing.passwordHash = await bcrypt.hash(data.password, 12);
+        existing.name = data.name; existing.whatsappNumber = data.whatsappNumber; existing.isGuest = false;
+        existing.timezone = data.timezone || existing.timezone;
+        existing.refreshTokens = [];
+        await existing.save();
+        return sanitizeUser(existing);
       }
     }
 
@@ -45,7 +61,7 @@ export const AuthService = {
 
   async login(email: string, password: string) {
     const user = await UserRepository.findByEmail(email);
-    if (!user) {
+    if (!user || !user.isActive || user.isGuest) {
       throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
     }
 
@@ -58,7 +74,7 @@ export const AuthService = {
       user.role = "user";
     }
 
-    const accessToken = TokenService.signAccessToken(user.id);
+    const accessToken = TokenService.signAccessToken(user.id, user.authVersion || 0);
     const refreshToken = TokenService.signRefreshToken(user.id);
     user.refreshTokens.push(hashToken(refreshToken));
     await user.save();
@@ -74,7 +90,7 @@ export const AuthService = {
     try {
       const payload = TokenService.verifyRefreshToken(refreshToken);
       const user = await UserRepository.findById(payload.sub);
-      if (!user) {
+      if (!user || !user.isActive || user.isGuest) {
         return null;
       }
 
@@ -88,7 +104,7 @@ export const AuthService = {
         await user.save();
       }
 
-      const accessToken = TokenService.signAccessToken(user.id);
+      const accessToken = TokenService.signAccessToken(user.id, user.authVersion || 0);
       return { user: sanitizeUser(user), accessToken };
     } catch (err) {
       return null;

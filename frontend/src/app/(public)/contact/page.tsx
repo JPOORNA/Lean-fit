@@ -23,15 +23,13 @@ import PillBadge from '@/components/public/PillBadge';
 import { api } from '@/lib/api';
 import { publicContact } from '@/lib/publicContact';
 
-const contactInfo = [
-  {
-    icon: <Email sx={{ fontSize: 22 }} />,
-    label: 'Email',
-    value: publicContact.email,
-    color: '#42A5F5',
-    href: `mailto:${publicContact.email}`,
-  },
-];
+const contactInfo = publicContact.emails.map(email => ({
+  icon: <Email sx={{ fontSize: 22 }} />,
+  label: 'Email',
+  value: email,
+  color: '#42A5F5',
+  href: `mailto:${email}`,
+}));
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -178,7 +176,7 @@ export default function ContactPage() {
                     >
                       {info.icon}
                     </Box>
-                    <Box>
+                    <Box sx={{ minWidth: 0 }}>
                       <Typography
                         variant="caption"
                         sx={{
@@ -192,8 +190,10 @@ export default function ContactPage() {
                         {info.label}
                       </Typography>
                       <Typography
+                        component="a"
+                        href={info.href}
                         variant="body2"
-                        sx={{ fontWeight: 600, color: '#2F3E2E' }}
+                        sx={{ display: 'block', fontWeight: 600, color: '#2F3E2E', overflowWrap: 'anywhere', textUnderlineOffset: 3 }}
                       >
                         {info.value}
                       </Typography>

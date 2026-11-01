@@ -39,6 +39,7 @@ export default function MealPicsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [notes, setNotes] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState('');
 
   const fetchMeals = async () => {
     setLoading(true);
@@ -79,6 +80,8 @@ export default function MealPicsPage() {
     }
   };
 
+  const filteredMeals = meals.filter(meal => (meal.notes || '').toLowerCase().includes(search.toLowerCase()));
+
   return (
     <Box>
       <PageContainer>
@@ -106,15 +109,16 @@ export default function MealPicsPage() {
           </Button>
         </Box>
 
-        {meals.length === 0 ? (
+        <TextField fullWidth label="Search meal notes" value={search} onChange={event => setSearch(event.target.value)} sx={{ mb: 3 }} />
+        {filteredMeals.length === 0 ? (
           <Paper sx={{ py: 10, textAlign: 'center', bgcolor: 'background.default', border: '2px dashed', borderColor: 'divider' }}>
             <Restaurant sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
-            <Typography color="text.secondary">No meals logged for this day.</Typography>
+            <Typography color="text.secondary">No meals match this day and search.</Typography>
             <Button variant="text" sx={{ mt: 1 }} onClick={() => setUploadOpen(true)}>Log your first meal</Button>
           </Paper>
         ) : (
           <Grid container spacing={3}>
-            {meals.map((meal) => (
+            {filteredMeals.map((meal) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={meal._id}>
                 <Card>
                   <CardMedia

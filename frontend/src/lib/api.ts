@@ -299,13 +299,48 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<T> =
   return res.json() as Promise<T>;
 };
 
+export type NotificationEvent = 'bookingConfirmation' | 'bookingReminder' | 'subscriptionExpiry' | 'mealUpload';
+export type DoctorNotificationRule = { enabled: boolean; emails: string[]; whatsappNumbers: string[] };
+export type DoctorNotificationDelivery = {
+  event: NotificationEvent;
+  channel: 'email' | 'whatsapp';
+  status: 'pending' | 'sending' | 'sent' | 'skipped' | 'failed';
+  attempts: number;
+  lastError?: string;
+  updatedAt: string;
+};
+export type DoctorNotificationRouting = {
+  events: Record<NotificationEvent, DoctorNotificationRule>;
+  bookingReminderMinutes: number;
+  subscriptionReminderDays: number;
+};
+export type NotificationPreferences = {
+  email: boolean; whatsapp: boolean; bookingConfirmation: boolean; bookingReminder: boolean;
+  subscriptionExpiry: boolean; mealUpload: boolean; bookingReminderMinutes: number; subscriptionReminderDays: number;
+};
 export const api = {
+  requestOtp: (identifier: string, channel: "email" | "whatsapp", purpose: "reset" | "booking" | "register") =>
+    request<{ challengeId: string; message: string }>("/auth/otp/request", { method: "POST", body: JSON.stringify({ identifier, channel, purpose }) }),
+  resetPassword: (challengeId: string, code: string, password: string) =>
+    request<{ message: string }>("/auth/reset-password", { method: "POST", body: JSON.stringify({ challengeId, code, password }) }),
+  getDoctorNotificationRouting: () => request<{ routing: DoctorNotificationRouting; deliveryStatus: DoctorNotificationDelivery[] }>("/doctor-settings/notification-recipients"),
+  saveDoctorNotificationRouting: (routing: DoctorNotificationRouting) =>
+    request<{ routing: DoctorNotificationRouting }>("/doctor-settings/notification-recipients", { method: "PUT", body: JSON.stringify(routing) }),
+  getNotificationPreferences: () => request<{ preferences: NotificationPreferences }>("/profile/notifications"),
+  saveNotificationPreferences: (preferences: NotificationPreferences) =>
+    request<{ preferences: NotificationPreferences }>("/profile/notifications", { method: "PUT", body: JSON.stringify(preferences) }),
+  guestSettings: () => request<{ settings: { timezone: string; appointmentFeePaise: number } }>("/booking/settings").then(result => result.settings),
+  guestSlots: (date: string) => request<{ slots: AppointmentSlot[] }>(`/booking/slots?date=${date}`),
+  guestBook: (payload: { name: string; email: string; whatsappNumber: string; timezone: string; startTime: string; endTime: string; challengeId: string; code: string; acceptedPolicies: boolean }) =>
+    request<{ order: PaymentOrder; bookingToken: string; keyId: string }>("/booking", { method: "POST", body: JSON.stringify(payload) }),
+  guestVerify: (payload: { bookingToken: string; orderId: string; paymentId: string; signature: string }) =>
+    request<{ message: string }>("/booking/verify", { method: "POST", body: JSON.stringify(payload) }),
   login: (email: string, password: string, captchaToken?: string) =>
     request<{ user: User }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password, captchaToken })
     }),
-  register: (payload: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string; whatsappNumber: string; captchaToken?: string }) =>
+  register: (payload: { name: string; email: string; password: string; role: Role; bootstrapKey?: string; timezone?: string; whatsappNumber: string; captchaToken?: string; challengeId: string; code: string }) =>
     request<{ message: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload)
@@ -434,6 +469,7 @@ export const api = {
   }>("/dashboard/recent-activities"),
   getClientsDailyStatus: (date: string) => 
     request<{ 
+      meals: MealLog[];
       mealStatus: Record<string, boolean>; 
       workoutStatus: Record<string, boolean>; 
       metricsStatus: Record<string, boolean>;
@@ -517,10 +553,10 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(payload)
     }),
-  changePassword: (password: string) =>
+  changePassword: (password: string, currentPassword: string) =>
     request<{ message: string }>("/profile/password", {
       method: "PUT",
-      body: JSON.stringify({ password })
+      body: JSON.stringify({ password, currentPassword })
     }),
   createClientSessionSchedule: (payload: { userId: string; daysOfWeek: number[]; timeSlots: { dayOfWeek: number; startTime: string; endTime: string }[]; startDate: string; endDate?: string }) =>
     request<{ schedule: ClientSessionSchedule }>("/client-sessions", {

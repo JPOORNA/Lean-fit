@@ -3,12 +3,20 @@ import { ZodError } from "zod";
 import { AppError } from "../utils/errors";
 
 export const errorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
+  if (err.code === 11000 && (err.keyPattern?.email || err.keyPattern?.whatsappNumber)) {
+    const phone = !!err.keyPattern.whatsappNumber;
+    return res.status(409).json({
+      message: phone ? "This WhatsApp number is already linked to another account." : "Email already registered",
+      code: phone ? "WHATSAPP_EXISTS" : "EMAIL_EXISTS"
+    });
+  }
+
   // Log the full error to the backend console so developers can debug it easily
   console.error("Error caught by errorHandler:", err);
 
   if (err instanceof ZodError) {
     return res.status(400).json({
-      message: "Validation error",
+      message: err.issues[0]?.message || "Please check the information you entered.",
       details: err.flatten()
     });
   }

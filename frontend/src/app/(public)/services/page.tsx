@@ -228,7 +228,7 @@ export default function ServicesPage() {
 
                         <Button 
                           component={Link} 
-                          href="/register"
+                          href="/book"
                           variant="outlined" 
                           fullWidth
                           sx={{ 
@@ -358,7 +358,7 @@ export default function ServicesPage() {
             </Typography>
             <Button
               component={Link}
-              href="/register"
+              href="/book"
               variant="contained"
               size="large"
               sx={{

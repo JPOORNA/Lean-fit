@@ -2,8 +2,8 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 
 export const TokenService = {
-  signAccessToken: (userId: string) => {
-    return jwt.sign({ sub: userId }, env.jwtAccessSecret, { 
+  signAccessToken: (userId: string, version = 0) => {
+    return jwt.sign({ sub: userId, version }, env.jwtAccessSecret, {
       expiresIn: env.jwtAccessExpiresIn 
     } as any);
   },

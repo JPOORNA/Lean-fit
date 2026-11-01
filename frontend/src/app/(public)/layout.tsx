@@ -4,9 +4,9 @@ import PublicNavbar from '@/components/public/PublicNavbar';
 import ConditionalFooter from '@/components/public/ConditionalFooter';
 
 export const metadata: Metadata = {
-  title: 'Leanfit — ISSA Certified Nutritionist & Fitness Coach',
+  title: 'Leanfit — ISSA Certified Nutrition Coach & Fitness Coach',
   description:
-    'Transform your health with Leanfit, an ISSA certified nutritionist specializing in fat loss, muscle gaining, and strength training. Book your consultation today.',
+    'Transform your health with Leanfit, an ISSA certified nutrition coach specializing in fat loss, muscle gaining, and strength training. Book your consultation today.',
 };
 
 export default function PublicLayout({

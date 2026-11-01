@@ -7,7 +7,7 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken?: strin
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    sameSite: "none",
+    sameSite: secure ? "none" : "lax",
     secure,
     path: "/"
   });
@@ -15,7 +15,7 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken?: strin
   if (refreshToken) {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: "none",
+      sameSite: secure ? "none" : "lax",
       secure,
       path: "/"
     });
@@ -24,8 +24,8 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken?: strin
 
 export const AuthController = {
   register: async (req: Request, res: Response) => {
-    const { name, email, password, role, bootstrapKey, timezone, whatsappNumber } = req.body;
-    await AuthService.register({ name, email, password, role, bootstrapKey, timezone, whatsappNumber });
+    const { name, email, password, role, bootstrapKey, timezone, whatsappNumber, challengeId, code } = req.body;
+    await AuthService.register({ name, email, password, role, bootstrapKey, timezone, whatsappNumber, challengeId, code });
     res.status(201).json({ message: "Registration successful" });
   },
 

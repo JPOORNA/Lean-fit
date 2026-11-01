@@ -1,5 +1,6 @@
 'use client';
 
+import DoctorNotificationSettings from '@/components/doctor/DoctorNotificationSettings';
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -220,6 +221,7 @@ export default function DoctorSettingsPage() {
   return (
     <Box>
       <PageContainer>
+        <DoctorNotificationSettings />
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' }, 
@@ -228,9 +230,7 @@ export default function DoctorSettingsPage() {
           gap: 2,
           mb: 3 
         }}>
-          <Typography variant="body2" color="text.secondary">
-            Manage your practice availability and configurations.
-          </Typography>
+          <Typography variant="h6">Practice settings</Typography>
           <Button 
             variant="contained" 
             startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <Save />}
@@ -595,7 +595,7 @@ export default function DoctorSettingsPage() {
                 </CardContent>
               </Card>
             </Box>
-      </PageContainer>
+    </PageContainer>
     </Box>
   );
 }

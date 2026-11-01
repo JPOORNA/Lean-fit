@@ -349,7 +349,7 @@ export default function ClientDetailView() {
     <Box>
       <PageContainer 
         breadcrumbs={[
-          { label: 'Clients', path: '/doctor/clients' },
+          { label: client.role === 'client' ? 'Clients' : 'Users', path: client.role === 'client' ? '/doctor/clients' : '/doctor/users' },
           { label: client.name }
         ]}
       >
@@ -982,7 +982,7 @@ export default function ClientDetailView() {
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               {editingPlanId 
                 ? 'Update the diet plan details. You can also upload a new PDF to replace the old one.' 
-                : 'Upload a new diet plan PDF. Max 3 active plans allowed.'}
+                : 'Upload a new diet plan PDF. Add as many plans as needed.'}
             </Typography>
             <TextField 
               label="Plan Name" 

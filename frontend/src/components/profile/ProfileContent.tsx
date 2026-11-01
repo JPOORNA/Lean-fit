@@ -1,5 +1,6 @@
 'use client';
 
+import NotificationSettings from './NotificationSettings';
 import React, { useState } from 'react';
 import {
   Box,
@@ -32,6 +33,7 @@ export default function ProfileContent() {
   const [name, setName] = useState(user?.name || '');
   const [timezone, setTimezone] = useState(user?.timezone || 'UTC');
   const [whatsappNumber, setWhatsappNumber] = useState(user?.whatsappNumber || '');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -69,9 +71,11 @@ export default function ProfileContent() {
 
     setIsUpdatingPassword(true);
     try {
-      await api.changePassword(newPassword);
+      await api.changePassword(newPassword, currentPassword);
       alert('Password updated successfully!');
+      setCurrentPassword('');
       setNewPassword('');
+      window.location.href = '/login';
       setConfirmPassword('');
     } catch (err: any) {
       console.error(err);
@@ -137,7 +141,7 @@ export default function ProfileContent() {
                   <TextField label="Full Name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField label="Email Address" defaultValue={user.email} fullWidth disabled />
+                  <TextField required label="Email Address" defaultValue={user.email} fullWidth disabled />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField 
@@ -166,6 +170,8 @@ export default function ProfileContent() {
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField 
+                    required
+                    helperText="Include country code, e.g. +919876543210"
                     label="WhatsApp Number" 
                     value={whatsappNumber} 
                     onChange={(e) => setWhatsappNumber(e.target.value)} 
@@ -183,10 +189,11 @@ export default function ProfileContent() {
                 <Security color="error" fontSize="small" /> Change Password
               </Typography>
               <Divider sx={{ mb: 3 }} />
+              <TextField type="password" required fullWidth label="Current Password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} sx={{ mb: 3 }} />
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField 
-                    label="New Password" 
+                    required label="New Password"
                     type="password" 
                     value={newPassword} 
                     onChange={(e) => setNewPassword(e.target.value)} 
@@ -217,6 +224,7 @@ export default function ProfileContent() {
           </Card>
         </Grid>
       </Grid>
+      <NotificationSettings />
     </PageContainer>
   );
 }

@@ -28,6 +28,11 @@ app.use(rateLimit({
   message: { message: "Too many requests, please try again later." }
 }));
 
+if (env.localUploads) app.use("/uploads", (_req, res, next) => {
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  next();
+}, express.static(env.localUploadDir));
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });

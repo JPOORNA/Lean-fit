@@ -93,7 +93,7 @@ const sections: PolicySection[] = [
       'If you have questions about this Privacy Policy or want to make a request about your data, contact us using the details below.',
     ],
     bullets: [
-      `Email: ${publicContact.email}`,
+      ...publicContact.emails.map(email => `Email: ${email}`),
     ],
   },
 ];
@@ -119,7 +119,7 @@ export default function PrivacyPolicyPage() {
       ]}
       contactTitle="Privacy help"
       contactDescription="Use the contact details below if you want to review your data, ask a privacy question, or make a request about your account."
-      contactEmail={publicContact.email}
+      contactEmails={publicContact.emails}
       sections={sections}
     />
   );

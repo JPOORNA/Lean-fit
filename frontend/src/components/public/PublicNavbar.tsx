@@ -28,6 +28,7 @@ const navLinks = [
   { label: 'Results', href: '/results' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
+  { label: 'Login', href: '/login' },
 ];
 
 const legalLinks = [
@@ -284,7 +285,7 @@ export default function PublicNavbar() {
               </Box>
               <Button
                 component={Link}
-                href="/login"
+                href="/book"
                 variant="contained"
                 sx={{
                   ml: 1,
@@ -305,7 +306,7 @@ export default function PublicNavbar() {
                   transition: 'all 0.2s ease',
                 }}
               >
-                Login
+                Book consultation
               </Button>
             </Box>
 
@@ -455,7 +456,7 @@ export default function PublicNavbar() {
           <ListItem disablePadding sx={{ mt: 2, px: 1 }}>
             <Button
               component={Link}
-              href="/login"
+              href="/book"
               fullWidth
               variant="contained"
               onClick={() => setDrawerOpen(false)}
@@ -470,7 +471,7 @@ export default function PublicNavbar() {
                 '&:hover': { bgcolor: '#1b5e20' },
               }}
             >
-              Login
+              Book consultation
             </Button>
           </ListItem>
         </List>

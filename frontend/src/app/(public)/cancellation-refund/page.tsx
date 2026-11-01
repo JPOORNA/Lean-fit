@@ -56,7 +56,7 @@ const sections: PolicySection[] = [
       'For questions about this policy or to request a review, use the contact details below.',
     ],
     bullets: [
-      `Email: ${publicContact.email}`,
+      ...publicContact.emails.map(email => `Email: ${email}`),
     ],
   },
 ];
@@ -82,7 +82,7 @@ export default function CancellationRefundPage() {
       ]}
       contactTitle="Refund support"
       contactDescription="If you need to request a review, send the details to us and the company will decide whether any exception is warranted."
-      contactEmail={publicContact.email}
+      contactEmails={publicContact.emails}
       sections={sections}
     />
   );

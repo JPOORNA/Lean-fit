@@ -1,3 +1,4 @@
+import { guestBookingRoutes } from "./guestBooking";
 import { Router } from "express";
 import { authRoutes } from "./auth";
 import { doctorSettingsRoutes } from "./doctorSettings";
@@ -20,6 +21,7 @@ import { groupSessionRoutes } from "./groupSessions";
 
 const router = Router();
 
+router.use("/booking", guestBookingRoutes);
 router.use("/auth", authRoutes);
 router.use("/doctor-settings", doctorSettingsRoutes);
 router.use("/appointments", appointmentRoutes);

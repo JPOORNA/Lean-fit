@@ -18,7 +18,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Leanfit — ISSA Certified Nutritionist & Fitness Coach",
+  title: "Leanfit — ISSA Certified Nutrition Coach & Fitness Coach",
   description: "Premium health, nutrition, and fitness management portal from Leanfit.",
 };
 
