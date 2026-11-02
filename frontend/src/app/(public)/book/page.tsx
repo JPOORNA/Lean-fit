@@ -88,8 +88,8 @@ export default function DirectBookingPage() {
   return <Box sx={{ bgcolor: '#fafbf9', pt: { xs: 12, md: 16 }, pb: { xs: 6, md: 10 }, minHeight: '100vh' }}>
     <Script src="https://checkout.razorpay.com/v1/checkout.js" onReady={() => setScriptReady(true)} onError={() => setError('Payment checkout could not load. Please reload to try again.')} />
     <Container maxWidth="lg">
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, alignItems: 'start' }}>
-        <Card component="aside" sx={cardSx}>
+f      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, alignItems: 'start' }}>
+        <Card component="aside" sx={{ ...cardSx, order: { xs: 2, md: 0 } }}>
           <CardContent sx={{ p: { xs: 3, md: 3.5 }, '&:last-child': { pb: 3.5 } }}>
             <Typography component="h1" sx={{ fontSize: 23, fontWeight: 650, color: colors.heading, mb: 2 }}>Procedure Details</Typography>
             <Typography sx={{ fontSize: 14, lineHeight: 1.8, color: 'text.secondary' }}>
@@ -98,7 +98,10 @@ export default function DirectBookingPage() {
             </Typography>
             <Box component="ul" sx={{ pl: 2.25, mb: 0, mt: 2, color: 'text.secondary', fontSize: 14, lineHeight: 1.65, '& li': { pl: 0.25, mb: 1.5 }, '& strong': { fontWeight: 600, color: colors.body } }}>
               <li><strong>Consultation Duration:</strong> 30–45 minutes</li>
-              <li><strong>Fee:</strong> {feeLabel} (Non-refundable)</li>
+              <li>
+                <strong>Fee:</strong> {feeLabel} (Non-refundable)
+                <Box component="span" sx={{ display: 'block', mt: 0.5 }}>Free Online Doctor Consultation</Box>
+              </li>
               <li><strong>Rescheduling:</strong> Contact us in advance if you need to change your slot. Requests are subject to our <Link href="/cancellation-refund" style={{ color: colors.primary }}>Cancellation & Refund Policy</Link>.</li>
               <li><strong>Confidentiality:</strong> All information shared will remain confidential.</li>
               <li><strong>All time slots are in:</strong> {timeZoneLabel}</li>
