@@ -88,7 +88,7 @@ export default function DirectBookingPage() {
   return <Box sx={{ bgcolor: '#fafbf9', pt: { xs: 12, md: 16 }, pb: { xs: 6, md: 10 }, minHeight: '100vh' }}>
     <Script src="https://checkout.razorpay.com/v1/checkout.js" onReady={() => setScriptReady(true)} onError={() => setError('Payment checkout could not load. Please reload to try again.')} />
     <Container maxWidth="lg">
-f      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, alignItems: 'start' }}>
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, alignItems: 'start' }}>
         <Card component="aside" sx={{ ...cardSx, order: { xs: 2, md: 0 } }}>
           <CardContent sx={{ p: { xs: 3, md: 3.5 }, '&:last-child': { pb: 3.5 } }}>
             <Typography component="h1" sx={{ fontSize: 23, fontWeight: 650, color: colors.heading, mb: 2 }}>Procedure Details</Typography>
